@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom"
-import { Home, List, Menu, Plus, Settings } from "lucide-react"
+import { Home, List, Menu, Plus, Users } from "lucide-react"
 import { useSidebar } from "@/components/ui/sidebar"
 import { cn } from "@/shared/lib/cn"
 import { Badge } from "@/components/ui/badge"
@@ -9,7 +9,7 @@ const LINKS = [
   { to: "/loans", label: "Loans", icon: List },
 ] as const
 
-const SECOND_LINK = { to: "/settings", label: "Settings", icon: Settings } as const
+const SECOND_LINK = { to: "/borrowers", label: "Borrowers", icon: Users } as const
 
 /** Phone navigation: big targets for the thumb, Issue always one tap away, and "More" opens the sidebar sheet. */
 export function MobileNav({ overdue, onNewLoan }: { overdue: number; onNewLoan: () => void }) {

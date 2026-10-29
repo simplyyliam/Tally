@@ -2,6 +2,8 @@ import { HashRouter, Route, Routes } from "react-router-dom"
 import { ShieldAlert } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AppShell } from "@/widgets/app-shell/app-shell"
+import { BorrowerProfile } from "@/widgets/borrower-profile/borrower-profile"
+import { BorrowersPage } from "@/widgets/borrowers-page/borrowers-page"
 import { Dashboard } from "@/widgets/dashboard/dashboard"
 import { LoanDetail } from "@/widgets/loan-detail/loan-detail"
 import { LoanEditor } from "@/widgets/loan-editor/loan-editor"
@@ -32,6 +34,8 @@ export function App({ repositories }: { repositories: Repositories }) {
             <Route path="/" element={<Dashboard />} />
             <Route path="/loans" element={<LoansRegister />} />
             <Route path="/loans/:loanId" element={<LoanDetail />} />
+            <Route path="/borrowers" element={<BorrowersPage />} />
+            <Route path="/borrowers/:borrowerKey" element={<BorrowerProfile />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="*" element={<Dashboard />} />
           </Routes>

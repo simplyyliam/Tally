@@ -1,5 +1,6 @@
 import type { ReactNode } from "react"
 import { LoanActionsProvider, LoanEditorStateProvider, LoanRepositoryProvider } from "@/features/loans"
+import { BorrowerRepositoryProvider } from "@/features/borrowers"
 import { SettingsRepositoryProvider } from "@/features/settings"
 import { ReminderChannelProvider } from "@/features/reminders"
 import { TooltipProvider } from "@/components/ui/tooltip"
@@ -11,11 +12,13 @@ export function Providers({ repositories, children }: { repositories: Repositori
     <TooltipProvider>
       <SettingsRepositoryProvider repository={repositories.settings}>
         <LoanRepositoryProvider repository={repositories.loans}>
-          <ReminderChannelProvider channel={repositories.reminderChannel}>
-            <LoanEditorStateProvider>
-              <LoanActionsProvider>{children}</LoanActionsProvider>
-            </LoanEditorStateProvider>
-          </ReminderChannelProvider>
+          <BorrowerRepositoryProvider repository={repositories.borrowers}>
+            <ReminderChannelProvider channel={repositories.reminderChannel}>
+              <LoanEditorStateProvider>
+                <LoanActionsProvider>{children}</LoanActionsProvider>
+              </LoanEditorStateProvider>
+            </ReminderChannelProvider>
+          </BorrowerRepositoryProvider>
         </LoanRepositoryProvider>
       </SettingsRepositoryProvider>
       <Toaster position="bottom-center" mobileOffset={{ bottom: 92 }} />

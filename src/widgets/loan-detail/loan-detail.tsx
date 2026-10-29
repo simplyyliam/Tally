@@ -1,5 +1,6 @@
 import type { ReactNode } from "react"
-import { useNavigate, useParams } from "react-router-dom"
+import { Link, useNavigate, useParams } from "react-router-dom"
+import { borrowerKey } from "@/features/borrowers"
 import { CalendarPlus, CircleCheck, FilePlus2, PackageOpen, FileQuestion, Pencil, Trash2 } from "lucide-react"
 import {
   BorrowerName,
@@ -150,6 +151,11 @@ function LoanDetailView({ loan }: { loan: Loan }) {
               <Row label="WhatsApp">{loan.borrower.whatsapp ? formatPhone(loan.borrower.whatsapp) : "Same as cellphone"}</Row>
               <Row label="Department">{loan.borrower.department || "—"}</Row>
               <Row label="Employee no.">{loan.borrower.employeeNumber || "—"}</Row>
+              <Row label="History">
+                <Link to={`/borrowers/${encodeURIComponent(borrowerKey(loan.borrower))}`} className="font-medium underline-offset-4 hover:underline">
+                  All loans for {loan.borrower.name.split(" ")[0]}
+                </Link>
+              </Row>
             </dl>
           </InfoCard>
           <InfoCard title="Loan">
