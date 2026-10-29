@@ -8,7 +8,7 @@ Ship **v1.0 "Trusted Register"** first: the 35 features you already have, harden
 
 Everything after that is staged into four follow-up releases, each one adding a single big idea: going online with staff accounts and a live Google Sheet (v1.1), automatic WhatsApp reminders (v1.2), items with QR codes (v1.3), and reservations, sign-off and reports (v1.4). Nine features are parked on purpose.
 
-Every release section below has a full build spec and a short `/goal` prompt that points the agent to it. **Keep this file in the repo at `docs/release-plan.md`** so the agent can read it.
+Every release section below has a full build spec and a short `/goal` prompt that points the agent to it. **Keep this file in the repo at `docs/release/release-plan.md`** so the agent can read it.
 
 ## Product philosophy
 
@@ -187,7 +187,7 @@ So a person can follow it without AI:
 ```text
 /goal Ship v1.0 "Trusted Register" of Tally on branch release/v1.0-trusted-register.
 
-Read docs/release-plan.md before writing code. Follow "Rules for every release" and "Architecture: built to grow, readable without AI", then build everything in the "v1.0 — Trusted Register (first launch)" section: every numbered Build step, every Quality item and any "Done when" items. UI must match docs/design/. If the plan and the code disagree, or a step is unclear, do the safe thing and list it under NEEDS YOUR DECISION.
+Read docs/release/release-plan.md before writing code. Follow "Rules for every release" and "Architecture: built to grow, readable without AI", then build everything in the "v1.0 — Trusted Register (first launch)" section: every numbered Build step, every Quality item and any "Done when" items. UI must match docs/design/. If the plan and the code disagree, or a step is unclear, do the safe thing and list it under NEEDS YOUR DECISION.
 
 Do not merge, tag or deploy; stop with the branch ready for a PR.
 
@@ -245,7 +245,7 @@ NEEDS YOUR DECISION: bullet list, or "none"
 ```text
 /goal Ship v1.1 "Online, Shared & Google Sheets" of Tally on branch release/v1.1-online-sheets.
 
-Read docs/release-plan.md before writing code. Follow "Rules for every release" and "Architecture: built to grow, readable without AI", then build everything in the "v1.1 — Online, Shared & Google Sheets" section: every numbered Build step, every Quality item and any "Done when" items. UI must match docs/design/. If the plan and the code disagree, or a step is unclear, do the safe thing and list it under NEEDS YOUR DECISION.
+Read docs/release/release-plan.md before writing code. Follow "Rules for every release" and "Architecture: built to grow, readable without AI", then build everything in the "v1.1 — Online, Shared & Google Sheets" section: every numbered Build step, every Quality item and any "Done when" items. UI must match docs/design/. If the plan and the code disagree, or a step is unclear, do the safe thing and list it under NEEDS YOUR DECISION.
 
 Do not merge, tag or deploy; stop with the branch ready for a PR.
 
@@ -304,7 +304,7 @@ Reminders go out from **one app-owned number** for every organisation, so your d
 ```text
 /goal Ship v1.2 "Automatic Reminders" of Tally on branch release/v1.2-auto-reminders.
 
-Read docs/release-plan.md before writing code. Follow "Rules for every release" and "Architecture: built to grow, readable without AI", then build everything in the "v1.2 — Automatic Reminders" section: every numbered Build step, every Quality item and any "Done when" items. UI must match docs/design/. If the plan and the code disagree, or a step is unclear, do the safe thing and list it under NEEDS YOUR DECISION.
+Read docs/release/release-plan.md before writing code. Follow "Rules for every release" and "Architecture: built to grow, readable without AI", then build everything in the "v1.2 — Automatic Reminders" section: every numbered Build step, every Quality item and any "Done when" items. UI must match docs/design/. If the plan and the code disagree, or a step is unclear, do the safe thing and list it under NEEDS YOUR DECISION.
 
 Do not merge, tag or deploy; stop with the branch ready for a PR.
 
@@ -354,7 +354,7 @@ NEEDS YOUR DECISION: bullet list, or "none"
 ```text
 /goal Ship v1.3 "Items & QR" of Tally on branch release/v1.3-items-qr.
 
-Read docs/release-plan.md before writing code. Follow "Rules for every release" and "Architecture: built to grow, readable without AI", then build everything in the "v1.3 — Items & QR" section: every numbered Build step, every Quality item and any "Done when" items. UI must match docs/design/. If the plan and the code disagree, or a step is unclear, do the safe thing and list it under NEEDS YOUR DECISION.
+Read docs/release/release-plan.md before writing code. Follow "Rules for every release" and "Architecture: built to grow, readable without AI", then build everything in the "v1.3 — Items & QR" section: every numbered Build step, every Quality item and any "Done when" items. UI must match docs/design/. If the plan and the code disagree, or a step is unclear, do the safe thing and list it under NEEDS YOUR DECISION.
 
 Do not merge, tag or deploy; stop with the branch ready for a PR.
 
@@ -405,7 +405,7 @@ NEEDS YOUR DECISION: bullet list, or "none"
 ```text
 /goal Ship v1.4 "Reservations, Sign-off & Reports" of Tally on branch release/v1.4-reserve-signoff-reports.
 
-Read docs/release-plan.md before writing code. Follow "Rules for every release" and "Architecture: built to grow, readable without AI", then build everything in the "v1.4 — Reservations, Sign-off & Reports" section: every numbered Build step, every Quality item and any "Done when" items. UI must match docs/design/. If the plan and the code disagree, or a step is unclear, do the safe thing and list it under NEEDS YOUR DECISION.
+Read docs/release/release-plan.md before writing code. Follow "Rules for every release" and "Architecture: built to grow, readable without AI", then build everything in the "v1.4 — Reservations, Sign-off & Reports" section: every numbered Build step, every Quality item and any "Done when" items. UI must match docs/design/. If the plan and the code disagree, or a step is unclear, do the safe thing and list it under NEEDS YOUR DECISION.
 
 Do not merge, tag or deploy; stop with the branch ready for a PR.
 

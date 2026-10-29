@@ -27,3 +27,4 @@ dist-ssr
 docs/design/
 .env*
 dist-offline
+docs/release/checkpoints.md
