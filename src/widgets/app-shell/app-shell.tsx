@@ -13,8 +13,8 @@ import { MobileNav } from "./mobile-nav"
 
 /**
  * The frame around every screen: a quiet grey sidebar on desktop (after the
- * sidebar reference, without its segmented control) and a bottom bar with a
- * central Issue button on phones.
+ * sidebar reference, flush with no inset and without its segmented control)
+ * and a bottom bar with a central Issue button on phones.
  */
 export function AppShell({ children, banner }: { children: ReactNode; banner?: ReactNode }) {
   const { openNew } = useLoanEditor()
@@ -40,8 +40,8 @@ export function AppShell({ children, banner }: { children: ReactNode; banner?: R
   }, [navigate, openNew])
 
   return (
-    <div className="flex min-h-dvh bg-canvas lg:p-2">
-      <aside className="sticky top-2 hidden h-[calc(100dvh-1rem)] w-[248px] shrink-0 flex-col px-3 py-3 lg:flex">
+    <div className="flex min-h-dvh bg-background">
+      <aside className="sticky top-0 hidden h-dvh w-[248px] shrink-0 flex-col border-r border-border bg-sidebar px-3 py-3 lg:flex">
         <div className="flex items-center justify-between px-2 pb-5">
           <div className="flex items-center gap-2.5">
             <BrandMark />
@@ -91,7 +91,7 @@ export function AppShell({ children, banner }: { children: ReactNode; banner?: R
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col pb-[calc(4.75rem+env(safe-area-inset-bottom))] lg:pb-0">
-        <main className="relative flex min-h-full flex-1 flex-col bg-background lg:rounded-xl lg:border lg:border-border lg:shadow-card">
+        <main className="relative flex min-h-full flex-1 flex-col bg-background">
           {banner}
           <RouteFade>{children}</RouteFade>
         </main>
