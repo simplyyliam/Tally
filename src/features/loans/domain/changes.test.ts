@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
-import { LoanChangeError, createLoan, editLoan, extendLoan, returnAllItems, draftFromLoan } from "./changes"
+import { LoanChangeError, createLoan, editLoan, extendLoan, returnAllItems, returnLines, draftFromLoan } from "./changes"
+import { loanStatus, outstandingLines, outstandingQuantity } from "./status"
 import { makeLine, makeLoan } from "./test-loans"
 
 let counter = 0
@@ -77,5 +78,44 @@ describe("returning and extending", () => {
 
   it("a loan can't be extended to before it started", () => {
     expect(() => extendLoan(makeLoan({ startDate: "2026-10-20" }), "2026-10-01", context.at)).toThrow(LoanChangeError)
+  })
+})
+
+describe("partial returns", () => {
+  const at = "2026-10-29T10:00:00.000Z"
+  const threeItems = makeLoan({
+    expectedReturnDate: "2026-10-27",
+    lines: [
+      makeLine({ id: "cords", description: "Extension cord", quantity: 2 }),
+      makeLine({ id: "projector", description: "Projector", quantity: 1 }),
+    ],
+  })
+
+  it("returning 2 of 3 items keeps the loan open and shows what's still out", () => {
+    const partly = returnLines(threeItems, { cords: 2 }, at)
+    expect(outstandingLines(partly).map((line) => line.description)).toEqual(["Projector"])
+    expect(outstandingQuantity(partly)).toBe(1)
+    expect(partly.returnedAt).toBeUndefined()
+    expect(loanStatus(partly, "2026-10-29")).toBe("overdue")
+  })
+
+  it("a fully returned line is time-stamped", () => {
+    expect(returnLines(threeItems, { cords: 2 }, at).lines[0].returnedAt).toBe(at)
+  })
+
+  it("returning some of one line leaves that line open", () => {
+    const partly = returnLines(threeItems, { cords: 1 }, at)
+    expect(partly.lines[0]).toMatchObject({ quantityReturned: 1 })
+    expect(partly.lines[0].returnedAt).toBeUndefined()
+  })
+
+  it("returning the last item closes the loan", () => {
+    const done = returnLines(returnLines(threeItems, { cords: 2 }, at), { projector: 1 }, "2026-10-30T09:00:00.000Z")
+    expect(loanStatus(done, "2026-10-30")).toBe("returned")
+    expect(done.returnedAt).toBe("2026-10-30T09:00:00.000Z")
+  })
+
+  it("can't return more than is still out", () => {
+    expect(() => returnLines(threeItems, { projector: 2 }, at)).toThrow(LoanChangeError)
   })
 })

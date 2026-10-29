@@ -12,15 +12,18 @@ import {
 } from "@/components/ui/alert-dialog"
 import { nowTimestamp } from "@/shared/lib/dates"
 import { plural } from "@/shared/lib/text"
-import { extendLoan, returnAllItems } from "../domain/changes"
+import { extendLoan, returnAllItems, returnLines } from "../domain/changes"
 import type { Loan } from "../domain/loan"
-import { isFullyReturned } from "../domain/status"
+import { isFullyReturned, outstandingQuantity } from "../domain/status"
 import { useLoanRepository } from "../data/loan-repository-context"
 import { ExtendDialog } from "./extend-dialog"
+import { ReturnDialog } from "./return-dialog"
 
 interface LoanActions {
   /** Marks every item on these loans as back. One tap, with Undo. */
   returnLoans: (loans: ReadonlyArray<Loan>) => Promise<void>
+  /** The Return button: one tap for a single item, otherwise a dialog to pick what came back. */
+  requestReturn: (loan: Loan) => void
   requestExtend: (loan: Loan) => void
   requestDelete: (loans: ReadonlyArray<Loan>, onDeleted?: () => void) => void
 }
@@ -35,6 +38,7 @@ const LoanActionsContext = createContext<LoanActions | null>(null)
 export function LoanActionsProvider({ children }: { children: ReactNode }) {
   const repository = useLoanRepository()
   const [extending, setExtending] = useState<Loan | null>(null)
+  const [returning, setReturning] = useState<Loan | null>(null)
   const [deleting, setDeleting] = useState<{ loans: ReadonlyArray<Loan>; onDeleted?: () => void } | null>(null)
 
   const guard = async (work: () => Promise<void>) => {
@@ -56,6 +60,10 @@ export function LoanActionsProvider({ children }: { children: ReactNode }) {
           action: { label: "Undo", onClick: () => void guard(() => repository.saveMany(open)) },
         })
       }),
+    requestReturn: (loan) => {
+      if (outstandingQuantity(loan) <= 1) void actions.returnLoans([loan])
+      else setReturning(loan)
+    },
     requestExtend: setExtending,
     requestDelete: (loans, onDeleted) => setDeleting({ loans, onDeleted }),
   }
@@ -63,6 +71,21 @@ export function LoanActionsProvider({ children }: { children: ReactNode }) {
   return (
     <LoanActionsContext.Provider value={actions}>
       {children}
+      <ReturnDialog
+        loan={returning}
+        onClose={() => setReturning(null)}
+        onReturn={(loan, counts) =>
+          guard(async () => {
+            const updated = returnLines(loan, counts, nowTimestamp())
+            await repository.save(updated)
+            setReturning(null)
+            const left = outstandingQuantity(updated)
+            toast.success(left === 0 ? `${loan.reference} fully returned` : `Partly returned · ${plural(left, "item")} still out`, {
+              action: { label: "Undo", onClick: () => void guard(() => repository.save(loan)) },
+            })
+          })
+        }
+      />
       <ExtendDialog
         loan={extending}
         onClose={() => setExtending(null)}

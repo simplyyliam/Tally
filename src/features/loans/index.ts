@@ -28,7 +28,7 @@ export {
   totalQuantity,
   type LoanStatus,
 } from "./domain/status"
-export { LoanChangeError, createLoan, draftFromLoan, editLoan, extendLoan, returnAllItems, type ChangeContext } from "./domain/changes"
+export { LoanChangeError, createLoan, draftFromLoan, editLoan, extendLoan, returnAllItems, returnLines, type ChangeContext } from "./domain/changes"
 export { LOAN_SORTS, LOAN_TABS, countByTab, matchesSearch, matchesTab, sortLoans, type LoanSort, type LoanTab } from "./domain/list-view"
 export { EXPORT_HEADERS, loansToCsvRows } from "./domain/export"
 export { validateDraft, type DraftErrors } from "./domain/validate-draft"

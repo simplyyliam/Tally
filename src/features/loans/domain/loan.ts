@@ -25,6 +25,8 @@ export const loanLineSchema = z
     description: z.string().trim().min(1, "Describe the item"),
     quantity: z.number().int().min(1),
     quantityReturned: z.number().int().min(0).default(0),
+    /** When the last of this line came back. */
+    returnedAt: timestamp.optional(),
   })
   .refine((line) => line.quantityReturned <= line.quantity, {
     message: "More returned than were lent",

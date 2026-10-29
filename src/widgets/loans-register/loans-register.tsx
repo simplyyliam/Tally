@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
-import { Download, List, Plus, SearchX, Trash2 } from "lucide-react"
+import { Download, List, Plus, SearchX, Trash2, Undo2 } from "lucide-react"
 import {
   LOAN_TABS,
   LoanList,
   countByTab,
+  isFullyReturned,
   loansToCsvRows,
   matchesSearch,
   matchesTab,
@@ -32,7 +33,7 @@ const TAB_IDS = LOAN_TABS.map((tab) => tab.id)
 export function LoansRegister() {
   const { data: loans, loading } = useLoans()
   const { openNew } = useLoanEditor()
-  const { requestDelete } = useLoanActions()
+  const { requestDelete, returnLoans } = useLoanActions()
   const navigate = useNavigate()
   const [params, setParams] = useSearchParams()
   const searchRef = useRef<HTMLInputElement>(null)
@@ -178,6 +179,17 @@ export function LoansRegister() {
           </FloatingBarButton>
         )}
         <FloatingBarDivider />
+        {selected.some((loan) => !isFullyReturned(loan)) && (
+          <FloatingBarButton
+            icon={<Undo2 />}
+            onClick={async () => {
+              await returnLoans(selected)
+              setSelectedIds(new Set())
+            }}
+          >
+            Mark returned
+          </FloatingBarButton>
+        )}
         <FloatingBarButton icon={<Download />} onClick={() => exportCsv(selected)}>
           <span className="hidden sm:inline">Export CSV</span>
         </FloatingBarButton>
