@@ -128,3 +128,130 @@
     @apply font-sans;
     }
 }
+
+/*
+ * Tally additions, layered on top of the shadcn theme above.
+ * Taken from the references in docs/design: a near-white canvas, hairline
+ * borders, a near-black "ink" for menus and the bulk bar, and status pills
+ * in pale tints with darker text. Corners stay modest; only pills are round.
+ */
+@theme inline {
+    --color-canvas: var(--canvas);
+    --color-subtle: var(--muted);
+    --color-subtle-strong: var(--subtle-strong);
+    --color-border-strong: var(--border-strong);
+    --color-faint: var(--faint);
+    --color-ink: var(--ink);
+    --color-ink-soft: var(--ink-soft);
+    --color-brand: var(--brand);
+    --color-green-tint: var(--green-tint);
+    --color-green-text: var(--green-text);
+    --color-amber-tint: var(--amber-tint);
+    --color-amber-text: var(--amber-text);
+    --color-red-tint: var(--red-tint);
+    --color-red-text: var(--red-text);
+    --color-blue-tint: var(--blue-tint);
+    --color-blue-text: var(--blue-text);
+    --color-purple-tint: var(--purple-tint);
+    --color-purple-text: var(--purple-text);
+    --color-grey-tint: var(--grey-tint);
+    --color-grey-text: var(--grey-text);
+
+    --shadow-card: 0 1px 2px oklch(0 0 0 / 0.04);
+    --shadow-float: 0 12px 32px -8px oklch(0 0 0 / 0.18), 0 2px 6px oklch(0 0 0 / 0.06);
+    --shadow-pop: 0 16px 40px -12px oklch(0 0 0 / 0.22), 0 0 0 1px oklch(0 0 0 / 0.04);
+
+    --animate-shimmer: shimmer 2s linear infinite;
+    @keyframes shimmer {
+        from { background-position: 100% 0; }
+        to { background-position: -100% 0; }
+    }
+}
+
+:root {
+    --canvas: oklch(0.975 0.001 106);
+    --subtle-strong: oklch(0.94 0 0);
+    --border-strong: oklch(0.895 0 0);
+    --faint: oklch(0.68 0 0);
+    --ink: oklch(0.22 0 0);
+    --ink-soft: oklch(0.33 0 0);
+    --brand: oklch(0.9 0.19 124);
+    --green-tint: oklch(0.96 0.03 155);
+    --green-text: oklch(0.52 0.13 152);
+    --amber-tint: oklch(0.96 0.045 85);
+    --amber-text: oklch(0.52 0.12 65);
+    --red-tint: oklch(0.95 0.025 25);
+    --red-text: oklch(0.55 0.2 27);
+    --blue-tint: oklch(0.95 0.025 260);
+    --blue-text: oklch(0.5 0.17 262);
+    --purple-tint: oklch(0.95 0.025 290);
+    --purple-text: oklch(0.48 0.17 288);
+    --grey-tint: oklch(0.955 0.002 106);
+    --grey-text: oklch(0.47 0 0);
+}
+
+.dark {
+    --canvas: oklch(0.12 0 0);
+    --subtle-strong: oklch(0.32 0 0);
+    --border-strong: oklch(1 0 0 / 18%);
+    --faint: oklch(0.55 0 0);
+    --ink: oklch(0.27 0 0);
+    --ink-soft: oklch(0.85 0 0);
+    --brand: oklch(0.88 0.18 124);
+    --green-tint: oklch(0.3 0.05 155);
+    --green-text: oklch(0.8 0.14 152);
+    --amber-tint: oklch(0.32 0.06 75);
+    --amber-text: oklch(0.83 0.13 80);
+    --red-tint: oklch(0.3 0.07 25);
+    --red-text: oklch(0.75 0.16 25);
+    --blue-tint: oklch(0.3 0.06 260);
+    --blue-text: oklch(0.78 0.12 260);
+    --purple-tint: oklch(0.3 0.06 290);
+    --purple-text: oklch(0.78 0.12 290);
+    --grey-tint: oklch(0.27 0 0);
+    --grey-text: oklch(0.78 0 0);
+}
+
+@layer base {
+    html {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+    }
+    body {
+        @apply bg-canvas;
+        font-feature-settings: "cv11", "ss03";
+    }
+    button:not(:disabled),
+    [role="button"]:not(:disabled) {
+        cursor: pointer;
+    }
+    ::selection {
+        background: color-mix(in oklab, var(--brand) 55%, transparent);
+    }
+    input[type="date"]::-webkit-calendar-picker-indicator {
+        opacity: 0.45;
+        cursor: pointer;
+    }
+}
+
+@layer utilities {
+    .tabular {
+        font-variant-numeric: tabular-nums;
+    }
+    .scrollbar-none {
+        scrollbar-width: none;
+    }
+    .scrollbar-none::-webkit-scrollbar {
+        display: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
+}
