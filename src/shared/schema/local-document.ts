@@ -1,22 +1,21 @@
+import { CURRENT_SCHEMA_VERSION, prepareStoredDocument } from "./migrations"
+import type { KeyValueStorage, RegisterDocument } from "./storage-types"
+
+export { isRecord, type KeyValueStorage, type RegisterDocument } from "./storage-types"
+
 /**
  * The whole register is one JSON document in browser storage, split into named
  * sections ("loans", "settings", …). Each feature's local repository owns one
  * section and validates it with its own schema; this store only reads, writes
  * and tells subscribers when something changed.
  *
- * Writes are synchronous and throw if the browser refuses them (storage full or
- * blocked), so a failed save is reported instead of silently lost.
+ * On first read it upgrades older data (see migrations.ts), saves the result,
+ * and keeps the original text under "<key>.before-v<N>" so nothing is lost.
+ * Writes are synchronous and throw if the browser refuses them (storage full
+ * or blocked), so a failed save is reported instead of silently lost.
  */
 
 export const STORAGE_KEY = "tally.register"
-
-export interface KeyValueStorage {
-  getItem(key: string): string | null
-  setItem(key: string, value: string): void
-  removeItem(key: string): void
-}
-
-export type RegisterDocument = Record<string, unknown>
 
 export class StorageWriteError extends Error {}
 
@@ -25,19 +24,12 @@ export class LocalDocumentStore {
   private readonly key: string
   private cache: RegisterDocument | null = null
   private readonly listeners = new Set<() => void>()
-  private readonly prepare: (raw: unknown) => RegisterDocument
+  private blockedReason: string | undefined
+  private upgradedFrom: number | null = null
 
-  /**
-   * @param prepare turns whatever is stored (possibly an older version) into
-   *   the current document shape. Defaults to "use as-is".
-   */
-  constructor(
-    storage: KeyValueStorage,
-    options: { key?: string; prepare?: (raw: unknown) => RegisterDocument } = {},
-  ) {
+  constructor(storage: KeyValueStorage, options: { key?: string } = {}) {
     this.storage = storage
     this.key = options.key ?? STORAGE_KEY
-    this.prepare = options.prepare ?? ((raw) => (isRecord(raw) ? raw : {}))
   }
 
   read(): RegisterDocument {
@@ -52,8 +44,27 @@ export class LocalDocumentStore {
         this.storage.setItem(`${this.key}.unreadable.${Date.now()}`, text)
       }
     }
-    this.cache = this.prepare(raw)
+    const prepared = prepareStoredDocument(raw, this.storage)
+    this.cache = prepared.document
+    this.blockedReason = prepared.readOnlyReason
+    if (prepared.migratedFrom !== null) {
+      this.upgradedFrom = prepared.migratedFrom
+      if (text) this.storage.setItem(`${this.key}.before-v${CURRENT_SCHEMA_VERSION}`, text)
+      this.persist(prepared.document)
+    }
     return this.cache
+  }
+
+  /** The version older data was upgraded from during this session, if any. */
+  get migratedFrom(): number | null {
+    this.read()
+    return this.upgradedFrom
+  }
+
+  /** Why changes can't be saved right now (e.g. data from a newer app version). */
+  get readOnlyReason(): string | undefined {
+    this.read()
+    return this.blockedReason
   }
 
   getSection(name: string): unknown {
@@ -64,9 +75,11 @@ export class LocalDocumentStore {
     this.write({ ...this.read(), [name]: value })
   }
 
-  /** Swaps in a complete document, e.g. when restoring a backup. */
+  /** Swaps in a complete document, e.g. when restoring a backup. Older backups are upgraded first. */
   replace(document: RegisterDocument): void {
-    this.write(document)
+    const prepared = prepareStoredDocument(document, this.storage)
+    if (prepared.readOnlyReason) throw new StorageWriteError(prepared.readOnlyReason)
+    this.write(prepared.document)
   }
 
   subscribe(listener: () => void): () => void {
@@ -81,6 +94,13 @@ export class LocalDocumentStore {
   }
 
   private write(document: RegisterDocument): void {
+    this.read()
+    if (this.blockedReason) throw new StorageWriteError(this.blockedReason)
+    this.persist({ ...document, schemaVersion: CURRENT_SCHEMA_VERSION })
+    this.notify()
+  }
+
+  private persist(document: RegisterDocument): void {
     try {
       this.storage.setItem(this.key, JSON.stringify(document))
     } catch (error) {
@@ -90,16 +110,11 @@ export class LocalDocumentStore {
       )
     }
     this.cache = document
-    this.notify()
   }
 
   private notify(): void {
     for (const listener of this.listeners) listener()
   }
-}
-
-export function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value)
 }
 
 /** In-memory storage for tests. */
