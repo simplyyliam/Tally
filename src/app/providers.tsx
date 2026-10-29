@@ -3,13 +3,12 @@ import { LoanActionsProvider, LoanEditorStateProvider, LoanRepositoryProvider } 
 import { SettingsRepositoryProvider } from "@/features/settings"
 import { ReminderChannelProvider } from "@/features/reminders"
 import { TooltipProvider } from "@/components/ui/tooltip"
-import { ToastProvider } from "@/shared/ui/toast"
+import { Toaster } from "@/components/ui/sonner"
 import type { Repositories } from "./repositories"
 
 export function Providers({ repositories, children }: { repositories: Repositories; children: ReactNode }) {
   return (
     <TooltipProvider>
-    <ToastProvider>
       <SettingsRepositoryProvider repository={repositories.settings}>
         <LoanRepositoryProvider repository={repositories.loans}>
           <ReminderChannelProvider channel={repositories.reminderChannel}>
@@ -19,7 +18,7 @@ export function Providers({ repositories, children }: { repositories: Repositori
           </ReminderChannelProvider>
         </LoanRepositoryProvider>
       </SettingsRepositoryProvider>
-    </ToastProvider>
+      <Toaster position="bottom-center" mobileOffset={{ bottom: 92 }} />
     </TooltipProvider>
   )
 }

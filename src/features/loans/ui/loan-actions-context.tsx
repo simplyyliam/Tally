@@ -1,6 +1,15 @@
 import { createContext, useContext, useState, type ReactNode } from "react"
-import { ConfirmDialog } from "@/shared/ui/confirm-dialog"
-import { useToast } from "@/shared/ui/toast"
+import { toast } from "sonner"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { nowTimestamp } from "@/shared/lib/dates"
 import { plural } from "@/shared/lib/text"
 import { extendLoan, returnAllItems } from "../domain/changes"
@@ -25,7 +34,6 @@ const LoanActionsContext = createContext<LoanActions | null>(null)
  */
 export function LoanActionsProvider({ children }: { children: ReactNode }) {
   const repository = useLoanRepository()
-  const toast = useToast()
   const [extending, setExtending] = useState<Loan | null>(null)
   const [deleting, setDeleting] = useState<{ loans: ReadonlyArray<Loan>; onDeleted?: () => void } | null>(null)
 
@@ -33,7 +41,7 @@ export function LoanActionsProvider({ children }: { children: ReactNode }) {
     try {
       await work()
     } catch (error) {
-      toast(error instanceof Error ? error.message : "Something went wrong", { tone: "error" })
+      toast.error(error instanceof Error ? error.message : "Something went wrong")
     }
   }
 
@@ -44,7 +52,7 @@ export function LoanActionsProvider({ children }: { children: ReactNode }) {
         if (open.length === 0) return
         const at = nowTimestamp()
         await repository.saveMany(open.map((loan) => returnAllItems(loan, at)))
-        toast(open.length === 1 ? `${open[0].borrower.name}'s loan marked returned` : `${plural(open.length, "loan")} marked returned`, {
+        toast.success(open.length === 1 ? `${open[0].reference} returned by ${open[0].borrower.name}` : `${plural(open.length, "loan")} marked returned`, {
           action: { label: "Undo", onClick: () => void guard(() => repository.saveMany(open)) },
         })
       }),
@@ -62,28 +70,41 @@ export function LoanActionsProvider({ children }: { children: ReactNode }) {
           guard(async () => {
             await repository.save(extendLoan(loan, date, nowTimestamp()))
             setExtending(null)
-            toast("Return date extended")
+            toast.success("Return date extended")
           })
         }
       />
-      <ConfirmDialog
-        open={deleting !== null}
-        onOpenChange={(open) => !open && setDeleting(null)}
-        title={deleting && deleting.loans.length > 1 ? `Delete ${deleting.loans.length} loans?` : "Delete this loan?"}
-        description="The record is removed from this register. Use this for mistakes; returned loans should be marked returned instead so the history is kept."
-        confirmLabel="Delete"
-        onConfirm={() => {
-          const target = deleting
-          if (!target) return
-          void guard(async () => {
-            await repository.remove(target.loans.map((loan) => loan.id))
-            target.onDeleted?.()
-            toast(target.loans.length === 1 ? "Loan deleted" : `${plural(target.loans.length, "loan")} deleted`, {
-              action: { label: "Undo", onClick: () => void guard(() => repository.saveMany(target.loans)) },
-            })
-          })
-        }}
-      />
+      <AlertDialog open={deleting !== null} onOpenChange={(open) => !open && setDeleting(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{deleting && deleting.loans.length > 1 ? `Delete ${deleting.loans.length} loans?` : "Delete this loan?"}</AlertDialogTitle>
+            <AlertDialogDescription>
+              The record is removed from this register. Use this for mistakes; returned loans should be marked returned instead so the
+              history is kept.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={() => {
+                const target = deleting
+                setDeleting(null)
+                if (!target) return
+                void guard(async () => {
+                  await repository.remove(target.loans.map((loan) => loan.id))
+                  target.onDeleted?.()
+                  toast.success(target.loans.length === 1 ? "Loan deleted" : `${plural(target.loans.length, "loan")} deleted`, {
+                    action: { label: "Undo", onClick: () => void guard(() => repository.saveMany(target.loans)) },
+                  })
+                })
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </LoanActionsContext.Provider>
   )
 }

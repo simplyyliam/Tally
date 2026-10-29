@@ -1,5 +1,5 @@
+import { Badge } from "@/components/ui/badge"
 import { cn } from "@/shared/lib/cn"
-import { Pill } from "@/shared/ui/pill"
 import type { Loan } from "../domain/loan"
 import { remainingQuantity, type LoanStatus } from "../domain/status"
 
@@ -22,7 +22,7 @@ export function BorrowerName({ loan, status, className }: { loan: Loan; status: 
   )
 }
 
-/** "2 × Extension cord" plus a "+2" pill when there are more lines. */
+/** "2 × Extension cord" plus an outlined "+2" badge when there are more lines. */
 export function ItemsSummary({ loan }: { loan: Loan }) {
   const [first, ...rest] = loan.lines
   return (
@@ -31,9 +31,9 @@ export function ItemsSummary({ loan }: { loan: Loan }) {
         <span className="text-muted-foreground tabular">{first.quantity} ×</span> {first.description}
       </span>
       {rest.length > 0 && (
-        <Pill tone="outline" size="sm" title={rest.map((line) => `${line.quantity} × ${line.description}`).join(", ")}>
+        <Badge variant="outline" className="text-muted-foreground" title={rest.map((line) => `${line.quantity} × ${line.description}`).join(", ")}>
           +{rest.length}
-        </Pill>
+        </Badge>
       )}
     </div>
   )

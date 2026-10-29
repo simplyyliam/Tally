@@ -14,9 +14,9 @@ import {
 } from "@/features/loans"
 import { useSettings } from "@/features/settings"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Button } from "@/shared/ui/button"
-import { Dialog } from "@/shared/ui/dialog"
-import { useToast } from "@/shared/ui/toast"
+import { toast } from "sonner"
+import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { addDays, nowTimestamp, todayIso } from "@/shared/lib/dates"
 import { createId } from "@/shared/lib/ids"
 
@@ -31,7 +31,6 @@ export function LoanEditor() {
   const { data: loans = [] } = useLoans()
   const repository = useLoanRepository()
   const settings = useSettings()
-  const toast = useToast()
   // Bumping this remounts the form with fresh, empty fields.
   const [formKey, setFormKey] = useState(0)
   const [lastSaved, setLastSaved] = useState<Loan | null>(null)
@@ -47,7 +46,7 @@ export function LoanEditor() {
     try {
       if (editing) {
         await repository.save(editLoan(editing, draft, { at: nowTimestamp(), createId }))
-        toast("Changes saved")
+        toast.success("Changes saved")
         close()
         return
       }
@@ -55,7 +54,7 @@ export function LoanEditor() {
       setLastSaved(created)
       setFormKey((key) => key + 1)
     } catch (error) {
-      toast(error instanceof Error ? error.message : "Couldn't save the loan", { tone: "error" })
+      toast.error(error instanceof Error ? error.message : "Couldn't save the loan")
     }
   }
 
@@ -66,49 +65,46 @@ export function LoanEditor() {
   }
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(next) => !next && handleClose()}
-      title={editing ? "Edit loan" : "New loan"}
-      description={editing ? editing.borrower.name : "Fill in who is borrowing what, then press Enter to save."}
-      size="md"
-      footer={
-        <>
+    <Dialog open={open} onOpenChange={(next) => !next && handleClose()}>
+      {/* Header and footer stay put; only the form scrolls. */}
+      <DialogContent className="flex max-h-[90dvh] flex-col gap-0 rounded-2xl p-0 sm:max-w-xl">
+        <DialogHeader className="border-b p-6 pb-4">
+          <DialogTitle>{editing ? "Edit loan" : "New loan"}</DialogTitle>
+          <DialogDescription>
+            {editing ? `${editing.reference} · ${editing.borrower.name}` : "Fill in who is borrowing what, then press Enter to save."}
+          </DialogDescription>
+        </DialogHeader>
+        <div className="min-h-0 flex-1 overflow-y-auto p-6">
+          <AnimatePresence>
+            {lastSaved && !editing && (
+              <motion.div
+                key={lastSaved.id}
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="overflow-hidden"
+              >
+                <Alert role="status" className="mb-6 border-green-text/15 bg-green-tint text-green-text">
+                  <CircleCheck />
+                  <AlertDescription className="text-green-text">
+                    Saved <strong className="font-semibold tabular">{lastSaved.reference}</strong> for{" "}
+                    <strong className="font-semibold">{lastSaved.borrower.name}</strong>. Ready for the next borrower.
+                  </AlertDescription>
+                </Alert>
+              </motion.div>
+            )}
+          </AnimatePresence>
+          {open && <LoanForm key={editing ? editing.id : formKey} formId={FORM_ID} initial={initial} onSubmit={handleSubmit} />}
+        </div>
+        <DialogFooter className="border-t p-4 sm:px-6">
           <Button variant="outline" onClick={handleClose}>
             {lastSaved && !editing ? "Done" : "Cancel"}
           </Button>
-          <Button variant="primary" type="submit" form={FORM_ID}>
+          <Button type="submit" form={FORM_ID}>
             {editing ? "Save changes" : "Save loan"}
           </Button>
-        </>
-      }
-    >
-      <AnimatePresence>
-        {lastSaved && !editing && (
-          <motion.div
-            key={lastSaved.id}
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="overflow-hidden"
-          >
-            <Alert role="status" className="mb-6 rounded-lg border-green-text/15 bg-green-tint text-green-text">
-              <CircleCheck />
-              <AlertDescription className="text-[13px] text-green-text">
-                Saved for <strong className="font-semibold">{lastSaved.borrower.name}</strong>. Ready for the next borrower.
-              </AlertDescription>
-            </Alert>
-          </motion.div>
-        )}
-      </AnimatePresence>
-      {open && (
-        <LoanForm
-          key={editing ? editing.id : formKey}
-          formId={FORM_ID}
-          initial={initial}
-          onSubmit={handleSubmit}
-        />
-      )}
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   )
 }

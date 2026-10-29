@@ -1,10 +1,10 @@
 import type { ReactNode } from "react"
 import { AnimatePresence, motion } from "motion/react"
 import { CalendarPlus, Ellipsis, Pencil, Trash2, Undo2 } from "lucide-react"
-import { Button } from "@/shared/ui/button"
+import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Menu } from "@/shared/ui/menu"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { cn } from "@/shared/lib/cn"
 import { formatDate, formatRelativeDay, type IsoDate } from "@/shared/lib/dates"
 import type { Loan } from "../domain/loan"
@@ -99,7 +99,10 @@ function LoanTable({ loans, today, selectedIds, onSelectionChange, onOpen, rende
                 </TableCell>
                 <TableCell className="whitespace-normal">
                   <BorrowerName loan={loan} status={status} />
-                  <p className="truncate text-xs text-muted-foreground">{loan.borrower.department || loan.borrower.cellphone || "—"}</p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    <span className="tabular">{loan.reference}</span>
+                    {loan.borrower.department && ` · ${loan.borrower.department}`}
+                  </p>
                 </TableCell>
                 <TableCell>
                   <ItemsSummary loan={loan} />
@@ -167,6 +170,8 @@ function LoanCards({ loans, today, selectedIds, onSelectionChange, onOpen, rende
                     <ItemsSummary loan={loan} />
                   </div>
                   <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+                    <span className="tabular">{loan.reference}</span>
+                    <span aria-hidden>·</span>
                     <span>Due {formatDate(loan.expectedReturnDate)}</span>
                     <ExtensionMark loan={loan} />
                   </div>
@@ -174,7 +179,7 @@ function LoanCards({ loans, today, selectedIds, onSelectionChange, onOpen, rende
               </div>
               {status !== "returned" && (
                 <div className="mt-3 flex items-center gap-2 pl-[30px]">
-                  <ReturnButton loan={loan} className="h-10 flex-1" />
+                  <ReturnButton loan={loan} size="lg" className="flex-1" />
                   {renderQuickActions?.(loan, status)}
                   <RowActions loan={loan} status={status} large />
                 </div>
@@ -187,11 +192,11 @@ function LoanCards({ loans, today, selectedIds, onSelectionChange, onOpen, rende
   )
 }
 
-export function ReturnButton({ loan, className, size = "sm" }: { loan: Loan; className?: string; size?: "sm" | "md" | "lg" }) {
+export function ReturnButton({ loan, className, size = "sm" }: { loan: Loan; className?: string; size?: "sm" | "default" | "lg" }) {
   const { returnLoans } = useLoanActions()
   return (
-    <Button variant="primary" size={size} className={className} onClick={() => void returnLoans([loan])}>
-      <Undo2 />
+    <Button size={size} className={className} onClick={() => void returnLoans([loan])}>
+      <Undo2 data-icon="inline-start" />
       Return
     </Button>
   )
@@ -204,19 +209,28 @@ function RowActions({ loan, status, large }: { loan: Loan; status: LoanStatus; l
   return (
     <>
       {open && !large && <ReturnButton loan={loan} />}
-      <Menu
-        trigger={
-          <Button variant="ghost" size={large ? "icon" : "icon-sm"} aria-label="More actions" className={large ? "h-10 w-10" : undefined}>
-            <Ellipsis />
-          </Button>
-        }
-        actions={[
-          ...(open ? [{ label: "Extend return date", icon: <CalendarPlus />, onSelect: () => requestExtend(loan) }] : []),
-          { label: "Edit loan", icon: <Pencil />, onSelect: () => openEdit(loan.id) },
-          "separator" as const,
-          { label: "Delete", icon: <Trash2 />, tone: "danger" as const, onSelect: () => requestDelete([loan]) },
-        ]}
-      />
+      <DropdownMenu>
+        <DropdownMenuTrigger render={<Button variant="ghost" size={large ? "icon-lg" : "icon-sm"} aria-label="More actions" />}>
+          <Ellipsis />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="min-w-48">
+          {open && (
+            <DropdownMenuItem onClick={() => requestExtend(loan)}>
+              <CalendarPlus />
+              Extend return date
+            </DropdownMenuItem>
+          )}
+          <DropdownMenuItem onClick={() => openEdit(loan.id)}>
+            <Pencil />
+            Edit loan
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem variant="destructive" onClick={() => requestDelete([loan])}>
+            <Trash2 />
+            Delete
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </>
   )
 }

@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from "motion/react"
 import { BorrowerName, ItemsSummary, LoanStatusPill, ReturnButton, loanStatus, overdueDays, type Loan } from "@/features/loans"
 import { DEFAULT_REMINDER_TEMPLATE, WhatsAppButton, reminderPhoneForLoan, reminderTextForLoan } from "@/features/reminders"
 import { formatDate, type IsoDate } from "@/shared/lib/dates"
-import { Panel } from "@/shared/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { cn } from "@/shared/lib/cn"
 
 interface AttentionListProps {
@@ -18,15 +18,14 @@ interface AttentionListProps {
 export function AttentionList({ title, loans, today, emptyText, className }: AttentionListProps) {
   const navigate = useNavigate()
   return (
-    <Panel
-      title={
-        <span className="flex items-center gap-2">
+    <Card className={cn("gap-0 rounded-2xl py-0 shadow-none ring-border", className)}>
+      <CardHeader className="border-b bg-muted/50 py-3 [.border-b]:pb-3">
+        <CardTitle className="flex items-center gap-2 text-sm font-medium">
           {title}
-          <span className="text-xs font-normal text-faint tabular">{loans.length}</span>
-        </span>
-      }
-      className={className}
-    >
+          <span className="text-xs font-normal text-muted-foreground tabular">{loans.length}</span>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="px-0">
       {loans.length === 0 ? (
         <p className="px-4 py-6 text-center text-[13px] text-muted-foreground">{emptyText}</p>
       ) : (
@@ -54,13 +53,13 @@ export function AttentionList({ title, loans, today, emptyText, className }: Att
                       <span className="shrink-0">{formatDate(loan.expectedReturnDate)}</span>
                     </div>
                   </button>
-                  <div className={cn("flex shrink-0 items-center gap-2")}>
+                  <div className="flex shrink-0 items-center gap-2">
                     <WhatsAppButton
                       phone={reminderPhoneForLoan(loan)}
                       text={reminderTextForLoan(loan, DEFAULT_REMINDER_TEMPLATE, today)}
-                      className="h-10 flex-1 sm:h-8 sm:flex-none"
+                      className="max-sm:h-10 max-sm:flex-1"
                     />
-                    <ReturnButton loan={loan} className="h-10 flex-1 sm:h-8 sm:flex-none" />
+                    <ReturnButton loan={loan} className="max-sm:h-10 max-sm:flex-1" />
                   </div>
                 </motion.li>
               )
@@ -68,6 +67,7 @@ export function AttentionList({ title, loans, today, emptyText, className }: Att
           </AnimatePresence>
         </ul>
       )}
-    </Panel>
+      </CardContent>
+    </Card>
   )
 }

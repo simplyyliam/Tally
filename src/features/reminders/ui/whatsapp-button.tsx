@@ -1,8 +1,8 @@
 import { MessageCircle } from "lucide-react"
+import { toast } from "sonner"
+import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-import { Button } from "@/shared/ui/button"
 import { cn } from "@/shared/lib/cn"
-import { useToast } from "@/shared/ui/toast"
 import { useReminderChannel } from "../data/reminder-channel-context"
 
 interface WhatsAppButtonProps {
@@ -10,48 +10,37 @@ interface WhatsAppButtonProps {
   text: string
   /** Set when the borrower opted out, so the button explains itself instead of sending. */
   blockedReason?: string
-  size?: "sm" | "md" | "lg" | "icon-sm"
-  variant?: "outline" | "success" | "secondary"
+  size?: "sm" | "default" | "lg" | "icon-sm" | "icon-lg"
   label?: string
   className?: string
   onSent?: () => void
 }
 
-export function WhatsAppButton({
-  phone,
-  text,
-  blockedReason,
-  size = "sm",
-  variant = "outline",
-  label = "WhatsApp",
-  className,
-  onSent,
-}: WhatsAppButtonProps) {
+/** Opens WhatsApp with the reminder typed in. Icon-only versions explain themselves in a tooltip. */
+export function WhatsAppButton({ phone, text, blockedReason, size = "sm", label = "WhatsApp", className, onSent }: WhatsAppButtonProps) {
   const channel = useReminderChannel()
-  const toast = useToast()
   const reason = blockedReason ?? channel.unavailableReason({ phone, text })
-  const iconOnly = size === "icon-sm"
+  const iconOnly = size === "icon-sm" || size === "icon-lg"
 
   const button = (
     <Button
-      variant={variant}
+      variant="outline"
       size={size}
       disabled={reason !== null}
       aria-label={iconOnly ? `${label}${reason ? ` — ${reason}` : ""}` : undefined}
-      className={cn(!reason && variant === "outline" && "text-green-text", className)}
+      className={cn(!reason && "text-green-text hover:text-green-text", className)}
       onClick={async (event) => {
         event.stopPropagation()
         const result = await channel.send({ phone, text })
         if (result.ok) onSent?.()
-        else toast(result.reason, { tone: "error" })
+        else toast.error(result.reason)
       }}
     >
-      <MessageCircle />
+      <MessageCircle data-icon={iconOnly ? undefined : "inline-start"} />
       {!iconOnly && label}
     </Button>
   )
   if (!iconOnly) return button
-  // Icon-only buttons get a tooltip so the action (or why it's blocked) is never a guess.
   return (
     <Tooltip>
       <TooltipTrigger render={<span className="inline-flex" />}>{button}</TooltipTrigger>

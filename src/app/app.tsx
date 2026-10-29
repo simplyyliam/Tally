@@ -1,6 +1,6 @@
 import { HashRouter, Route, Routes } from "react-router-dom"
 import { ShieldAlert } from "lucide-react"
-import { Banner } from "@/shared/ui/banner"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AppShell } from "@/widgets/app-shell/app-shell"
 import { Dashboard } from "@/widgets/dashboard/dashboard"
 import { LoanDetail } from "@/widgets/loan-detail/loan-detail"
@@ -21,9 +21,10 @@ export function App({ repositories }: { repositories: Repositories }) {
         <AppShell
           banner={
             repositories.store.readOnlyReason ? (
-              <Banner icon={<ShieldAlert />} tone="red">
-                {repositories.store.readOnlyReason}
-              </Banner>
+              <Alert variant="destructive" className="rounded-none border-x-0 border-t-0">
+                <ShieldAlert />
+                <AlertDescription>{repositories.store.readOnlyReason}</AlertDescription>
+              </Alert>
             ) : undefined
           }
         >

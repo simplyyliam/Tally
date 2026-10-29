@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { Download, List, Plus, SearchX, Trash2 } from "lucide-react"
 import {
-  LOAN_SORTS,
   LOAN_TABS,
   LoanList,
   countByTab,
@@ -20,14 +19,12 @@ import { DEFAULT_REMINDER_TEMPLATE, WhatsAppButton, reminderPhoneForLoan, remind
 import { toCsv } from "@/shared/lib/csv"
 import { fileDateStamp, todayIso } from "@/shared/lib/dates"
 import { downloadTextFile } from "@/shared/lib/download"
-import { Button } from "@/shared/ui/button"
-import { EmptyState } from "@/shared/ui/empty-state"
+import { Button } from "@/components/ui/button"
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import { Skeleton } from "@/components/ui/skeleton"
 import { FloatingBar, FloatingBarButton, FloatingBarDivider } from "@/shared/ui/floating-bar"
-import { Select } from "@/shared/ui/input"
-import { TableSkeleton } from "@/shared/ui/loading"
 import { PageHeader } from "@/shared/ui/page-header"
-import { PillTabs } from "@/shared/ui/pill-tabs"
-import { SearchField } from "@/shared/ui/search-field"
+import { SearchBox, SortMenu, StatusTabs } from "./register-toolbar"
 
 const TAB_IDS = LOAN_TABS.map((tab) => tab.id)
 
@@ -81,11 +78,11 @@ export function LoansRegister() {
         actions={
           <>
             <Button variant="outline" size="sm" onClick={() => exportCsv()} disabled={visible.length === 0} className="hidden sm:inline-flex">
-              <Download />
+              <Download data-icon="inline-start" />
               Export CSV
             </Button>
-            <Button variant="primary" size="sm" onClick={() => openNew()} className="hidden sm:inline-flex">
-              <Plus />
+            <Button size="sm" onClick={() => openNew()} className="hidden sm:inline-flex">
+              <Plus data-icon="inline-start" />
               New loan
             </Button>
           </>
@@ -93,62 +90,60 @@ export function LoansRegister() {
       />
 
       <div className="flex flex-col gap-3 border-b border-border px-4 py-3 md:px-6 lg:flex-row lg:items-center">
-        <PillTabs
-          label="Filter loans by status"
+        <StatusTabs
           value={tab}
+          counts={counts}
           onChange={(next) => {
             setSelectedIds(new Set())
             setParams(next === "out" ? {} : { tab: next })
           }}
-          tabs={LOAN_TABS.map((item) => ({ ...item, count: counts[item.id], alert: item.id === "overdue" }))}
-          className="-mx-1 flex-1"
         />
         <div className="flex items-center gap-2">
-          <SearchField
-            ref={searchRef}
-            value={query}
-            onValueChange={setQuery}
-            placeholder="Search name, item, phone…"
-            shortcut="Ctrl K"
-            className="flex-1 lg:w-72"
-            aria-label="Search loans"
-          />
-          {tab !== "returned" && (
-            <Select aria-label="Sort loans" value={sort} onChange={(event) => setSort(event.target.value as LoanSort)} className="[&>select]:rounded-xl">
-              {LOAN_SORTS.map((option) => (
-                <option key={option.id} value={option.id}>
-                  {option.label}
-                </option>
-              ))}
-            </Select>
-          )}
+          <SearchBox ref={searchRef} value={query} onChange={setQuery} />
+          {tab !== "returned" && <SortMenu value={sort} onChange={setSort} />}
         </div>
       </div>
 
       <div className="flex-1">
         {loading ? (
-          <TableSkeleton />
+          <div role="status" aria-label="Loading" className="divide-y">
+            {Array.from({ length: 6 }, (_, index) => (
+              <div key={index} className="flex items-center gap-4 px-4 py-4" style={{ opacity: 1 - index * 0.12 }}>
+                <Skeleton className="size-4" />
+                <Skeleton className="h-3.5 w-36" />
+                <Skeleton className="h-3.5 flex-1" />
+                <Skeleton className="h-5 w-20" />
+              </div>
+            ))}
+          </div>
         ) : visible.length === 0 ? (
-          all.length === 0 ? (
-            <EmptyState
-              icon={<List />}
-              title="The register is empty"
-              description="New loans appear here the moment they're saved."
-              action={
-                <Button variant="primary" size="sm" onClick={() => openNew()}>
-                  <Plus />
+          <Empty>
+            <EmptyHeader>
+              <EmptyMedia variant="icon">{all.length === 0 ? <List /> : <SearchX />}</EmptyMedia>
+              <EmptyTitle>{all.length === 0 ? "The register is empty" : "No loans match"}</EmptyTitle>
+              <EmptyDescription>
+                {all.length === 0
+                  ? "New loans appear here the moment they're saved."
+                  : query
+                    ? `Nothing in "${LOAN_TABS.find((item) => item.id === tab)?.label}" matches "${query}".`
+                    : "Nothing in this tab right now."}
+              </EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent>
+              {all.length === 0 ? (
+                <Button size="sm" onClick={() => openNew()}>
+                  <Plus data-icon="inline-start" />
                   New loan
                 </Button>
-              }
-            />
-          ) : (
-            <EmptyState
-              icon={<SearchX />}
-              title="No loans match"
-              description={query ? `Nothing in "${LOAN_TABS.find((item) => item.id === tab)?.label}" matches "${query}".` : "Nothing in this tab right now."}
-              action={query ? <Button onClick={() => setQuery("")}>Clear search</Button> : undefined}
-            />
-          )
+              ) : (
+                query && (
+                  <Button variant="outline" size="sm" onClick={() => setQuery("")}>
+                    Clear search
+                  </Button>
+                )
+              )}
+            </EmptyContent>
+          </Empty>
         ) : (
           <LoanList
             loans={visible}
@@ -162,7 +157,7 @@ export function LoansRegister() {
                   size="icon-sm"
                   phone={reminderPhoneForLoan(loan)}
                   text={reminderTextForLoan(loan, DEFAULT_REMINDER_TEMPLATE, today)}
-                  className="max-lg:h-10 max-lg:w-10"
+                  className="max-lg:size-10"
                 />
               )
             }

@@ -29,7 +29,7 @@ function toIso(date: Date): IsoDate {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
 }
 
-/** A date field: the shadcn Calendar in a shadcn Popover, opened from a button showing the date. */
+/** shadcn's own "Date Picker" recipe: a Calendar in a Popover, opened from an outline Button. */
 export function DatePicker({ id, value, onChange, min, invalid, describedBy, className }: DatePickerProps) {
   const [open, setOpen] = useState(false)
   const selected = toDate(value)
@@ -46,7 +46,7 @@ export function DatePicker({ id, value, onChange, min, invalid, describedBy, cla
             aria-invalid={invalid || undefined}
             aria-describedby={describedBy}
             className={cn(
-              "h-10 w-full justify-start rounded-lg border-border-strong bg-background px-3 font-normal shadow-card md:h-9",
+              "w-full justify-start font-normal",
               !selected && "text-muted-foreground",
               className,
             )}
@@ -56,7 +56,7 @@ export function DatePicker({ id, value, onChange, min, invalid, describedBy, cla
         <CalendarDays className="text-muted-foreground" />
         {selected ? formatDate(value) : "Pick a date"}
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-auto rounded-xl p-0">
+      <PopoverContent align="start" className="w-auto p-0">
         <Calendar
           mode="single"
           selected={selected}

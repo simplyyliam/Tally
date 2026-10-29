@@ -20,7 +20,7 @@ import { Kbd } from "@/components/ui/kbd"
 import { Button } from "@/components/ui/button"
 import { countByTab, useLoanEditor, useLoans } from "@/features/loans"
 import { todayIso } from "@/shared/lib/dates"
-import { CountBadge } from "@/shared/ui/pill"
+import { Badge } from "@/components/ui/badge"
 import { BrandMark } from "./brand-mark"
 import { DATA_NAV, MAIN_NAV, type NavItem } from "./nav-items"
 import { MobileNav } from "./mobile-nav"
@@ -135,7 +135,9 @@ function NavEntry({ item, badge = 0 }: { item: NavItem; badge?: number }) {
       </SidebarMenuButton>
       {badge > 0 && (
         <SidebarMenuBadge>
-          <CountBadge count={badge} />
+          <Badge variant="destructive" className="h-5 min-w-5 px-1.5 tabular">
+            {badge}
+          </Badge>
         </SidebarMenuBadge>
       )}
     </SidebarMenuItem>

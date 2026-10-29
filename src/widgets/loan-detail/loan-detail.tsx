@@ -1,6 +1,6 @@
 import type { ReactNode } from "react"
 import { useNavigate, useParams } from "react-router-dom"
-import { CalendarPlus, FileQuestion, Pencil, Trash2 } from "lucide-react"
+import { CalendarPlus, CircleCheck, FilePlus2, PackageOpen, FileQuestion, Pencil, Trash2 } from "lucide-react"
 import {
   BorrowerName,
   ExtensionMark,
@@ -19,11 +19,13 @@ import { DEFAULT_REMINDER_TEMPLATE, WhatsAppButton, reminderPhoneForLoan, remind
 import { cn } from "@/shared/lib/cn"
 import { formatDate, formatDateTime, formatRelativeDay, todayIso } from "@/shared/lib/dates"
 import { formatPhone } from "@/shared/lib/phone"
-import { Button } from "@/shared/ui/button"
-import { Panel } from "@/shared/ui/card"
-import { EmptyState } from "@/shared/ui/empty-state"
-import { Skeleton } from "@/shared/ui/loading"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import { Skeleton } from "@/components/ui/skeleton"
 import { PageHeader } from "@/shared/ui/page-header"
+import { Timeline, type TimelineEntry } from "@/shared/ui/timeline"
 
 /** Everything about one loan, with the handover actions at the top. */
 export function LoanDetail() {
@@ -42,12 +44,20 @@ export function LoanDetail() {
   }
   if (!loan) {
     return (
-      <EmptyState
-        icon={<FileQuestion />}
-        title="Loan not found"
-        description="It may have been deleted or purged."
-        action={<Button onClick={() => navigate("/loans")}>Back to loans</Button>}
-      />
+      <Empty>
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <FileQuestion />
+          </EmptyMedia>
+          <EmptyTitle>Loan not found</EmptyTitle>
+          <EmptyDescription>It may have been deleted or purged.</EmptyDescription>
+        </EmptyHeader>
+        <EmptyContent>
+          <Button variant="outline" onClick={() => navigate("/loans")}>
+            Back to loans
+          </Button>
+        </EmptyContent>
+      </Empty>
     )
   }
   return <LoanDetailView loan={loan} />
@@ -72,11 +82,11 @@ function LoanDetailView({ loan }: { loan: Loan }) {
         actions={
           <div className="hidden items-center gap-2 md:flex">
             <Button variant="ghost" size="sm" onClick={() => openEdit(loan.id)}>
-              <Pencil />
+              <Pencil data-icon="inline-start" />
               Edit
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => requestDelete([loan], () => navigate("/loans"))} className="hover:text-red-text">
-              <Trash2 />
+            <Button variant="ghost" size="sm" onClick={() => requestDelete([loan], () => navigate("/loans"))} className="hover:text-destructive">
+              <Trash2 data-icon="inline-start" />
               Delete
             </Button>
           </div>
@@ -88,6 +98,9 @@ function LoanDetailView({ loan }: { loan: Loan }) {
             <div className="flex flex-wrap items-center gap-2">
               <BorrowerName loan={loan} status={status} className="text-2xl font-semibold tracking-tight" />
               <LoanStatusPill status={status} overdueDays={overdueDays(loan, today)} />
+              <Badge variant="outline" className="tabular">
+                {loan.reference}
+              </Badge>
             </div>
             <p className="mt-1 text-sm text-muted-foreground">
               Due {formatDate(loan.expectedReturnDate)}
@@ -96,22 +109,21 @@ function LoanDetailView({ loan }: { loan: Loan }) {
           </div>
           {isOpen && (
             <div className="grid grid-cols-2 gap-2 sm:flex">
-              <ReturnButton loan={loan} size="md" className="max-sm:h-11" />
+              <ReturnButton loan={loan} size="lg" />
               <WhatsAppButton
-                size="md"
+                size="lg"
                 phone={reminderPhoneForLoan(loan)}
                 text={reminderTextForLoan(loan, DEFAULT_REMINDER_TEMPLATE, today)}
-                className="max-sm:h-11"
               />
-              <Button size="md" onClick={() => requestExtend(loan)} className="max-sm:col-span-2 max-sm:h-11">
-                <CalendarPlus />
+              <Button variant="outline" size="lg" onClick={() => requestExtend(loan)} className="max-sm:col-span-2">
+                <CalendarPlus data-icon="inline-start" />
                 Extend
               </Button>
             </div>
           )}
         </section>
 
-        <Panel title="Items" description={`${loan.lines.length} line${loan.lines.length === 1 ? "" : "s"}`}>
+        <InfoCard title="Items" description={`${loan.lines.length} line${loan.lines.length === 1 ? "" : "s"}`}>
           <ul className="divide-y divide-border">
             {loan.lines.map((line) => {
               const lineState = lineStatus(line, loan, today)
@@ -129,18 +141,18 @@ function LoanDetailView({ loan }: { loan: Loan }) {
               )
             })}
           </ul>
-        </Panel>
+        </InfoCard>
 
         <div className="grid gap-6 md:grid-cols-2">
-          <Panel title="Borrower">
+          <InfoCard title="Borrower">
             <dl className="divide-y divide-border text-sm">
               <Row label="Cellphone">{loan.borrower.cellphone ? formatPhone(loan.borrower.cellphone) : "—"}</Row>
               <Row label="WhatsApp">{loan.borrower.whatsapp ? formatPhone(loan.borrower.whatsapp) : "Same as cellphone"}</Row>
               <Row label="Department">{loan.borrower.department || "—"}</Row>
               <Row label="Employee no.">{loan.borrower.employeeNumber || "—"}</Row>
             </dl>
-          </Panel>
-          <Panel title="Loan">
+          </InfoCard>
+          <InfoCard title="Loan">
             <dl className="divide-y divide-border text-sm">
               <Row label="Start date">{formatDate(loan.startDate)}</Row>
               <Row label="Return date">
@@ -150,25 +162,29 @@ function LoanDetailView({ loan }: { loan: Loan }) {
                 </span>
               </Row>
               <Row label="Issued by">{loan.issuedBy || "—"}</Row>
-              <Row label="Created">{formatDateTime(loan.createdAt)}</Row>
-              {loan.returnedAt && <Row label="Returned">{formatDateTime(loan.returnedAt)}</Row>}
             </dl>
-          </Panel>
+          </InfoCard>
         </div>
 
+        <InfoCard title="Timestamps" description="Every handover moment, in Johannesburg time">
+          <div className="px-4 py-4">
+            <Timeline entries={timestampEntries(loan)} />
+          </div>
+        </InfoCard>
+
         {loan.notes && (
-          <Panel title="Notes">
+          <InfoCard title="Notes">
             <p className="px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap">{loan.notes}</p>
-          </Panel>
+          </InfoCard>
         )}
 
         <div className="flex gap-2 md:hidden">
-          <Button className="h-11 flex-1" onClick={() => openEdit(loan.id)}>
-            <Pencil />
+          <Button variant="outline" size="lg" className="flex-1" onClick={() => openEdit(loan.id)}>
+            <Pencil data-icon="inline-start" />
             Edit
           </Button>
-          <Button variant="danger" className="h-11 flex-1" onClick={() => requestDelete([loan], () => navigate("/loans"))}>
-            <Trash2 />
+          <Button variant="destructive" size="lg" className="flex-1" onClick={() => requestDelete([loan], () => navigate("/loans"))}>
+            <Trash2 data-icon="inline-start" />
             Delete
           </Button>
         </div>
@@ -177,11 +193,42 @@ function LoanDetailView({ loan }: { loan: Loan }) {
   )
 }
 
-export function Row({ label, children }: { label: string; children: ReactNode }) {
+/** A titled shadcn Card, the grey header echoing the "Outcome" reference. */
+function InfoCard({ title, description, children }: { title: string; description?: string; children: ReactNode }) {
+  return (
+    <Card className="gap-0 rounded-2xl py-0 shadow-none ring-border">
+      <CardHeader className="border-b bg-muted/50 py-3 [.border-b]:pb-3">
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        {description && <CardDescription className="text-xs">{description}</CardDescription>}
+      </CardHeader>
+      <CardContent className="px-0">{children}</CardContent>
+    </Card>
+  )
+}
+
+function Row({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-4 px-4 py-2.5">
       <dt className="text-muted-foreground">{label}</dt>
       <dd className="min-w-0 truncate text-right">{children}</dd>
     </div>
   )
+}
+
+/** Created, issued, each extension and the return, oldest first. */
+function timestampEntries(loan: Loan): TimelineEntry[] {
+  const entries: TimelineEntry[] = [
+    { id: "created", icon: <FilePlus2 />, title: "Created in Tally", meta: formatDateTime(loan.createdAt) },
+    { id: "issued", icon: <PackageOpen />, title: `Issued${loan.issuedBy ? ` by ${loan.issuedBy}` : ""}`, meta: formatDateTime(loan.issuedAt) },
+    ...loan.extendedAt.map((at, index) => ({
+      id: `extended-${index}`,
+      icon: <CalendarPlus />,
+      title: "Return date extended",
+      meta: formatDateTime(at),
+    })),
+  ]
+  if (loan.returnedAt) {
+    entries.push({ id: "returned", icon: <CircleCheck />, title: "Everything returned", meta: formatDateTime(loan.returnedAt) })
+  }
+  return entries
 }

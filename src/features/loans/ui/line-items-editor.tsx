@@ -1,7 +1,8 @@
 import { AnimatePresence, motion } from "motion/react"
 import { Minus, Plus, Trash2 } from "lucide-react"
-import { Input } from "@/shared/ui/input"
-import { Button } from "@/shared/ui/button"
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/components/ui/input-group"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
 import type { LoanDraft } from "../domain/loan"
 import type { DraftErrors } from "../domain/validate-draft"
 
@@ -93,6 +94,7 @@ export function LineItemsEditor({ formId, lines, errors, onChange }: LineItemsEd
   )
 }
 
+/** A number with − and + buttons, built from the shadcn InputGroup. */
 export function QuantityStepper({
   id,
   value,
@@ -110,39 +112,29 @@ export function QuantityStepper({
 }) {
   const clamp = (next: number) => Math.min(max, Math.max(min, next))
   return (
-    <div className="flex h-10 shrink-0 items-center rounded-lg border border-border-strong bg-background shadow-card md:h-9">
-      <button
-        type="button"
-        tabIndex={-1}
-        aria-label="Decrease"
-        disabled={value <= min}
-        onClick={() => onChange(clamp(value - 1))}
-        className="flex h-full w-8 items-center justify-center text-muted-foreground transition-colors hover:text-foreground disabled:opacity-30"
-      >
-        <Minus className="size-3.5" />
-      </button>
-      <input
+    <InputGroup className="w-[7.5rem] shrink-0">
+      <InputGroupAddon>
+        <InputGroupButton size="icon-xs" tabIndex={-1} aria-label="Decrease" disabled={value <= min} onClick={() => onChange(clamp(value - 1))}>
+          <Minus />
+        </InputGroupButton>
+      </InputGroupAddon>
+      <InputGroupInput
         id={id}
         aria-label={label}
         inputMode="numeric"
         value={value}
         onChange={(event) => {
-          const parsed = Number.parseInt(event.target.value.replace(/\D/g, ""), 10)
+          const parsed = Number.parseInt(event.target.value.replace(/D/g, ""), 10)
           onChange(Number.isNaN(parsed) ? min : clamp(parsed))
         }}
         onFocus={(event) => event.target.select()}
-        className="h-full w-9 bg-transparent text-center text-sm font-medium tabular outline-none"
+        className="px-0 text-center font-medium tabular"
       />
-      <button
-        type="button"
-        tabIndex={-1}
-        aria-label="Increase"
-        disabled={value >= max}
-        onClick={() => onChange(clamp(value + 1))}
-        className="flex h-full w-8 items-center justify-center text-muted-foreground transition-colors hover:text-foreground disabled:opacity-30"
-      >
-        <Plus className="size-3.5" />
-      </button>
-    </div>
+      <InputGroupAddon align="inline-end">
+        <InputGroupButton size="icon-xs" tabIndex={-1} aria-label="Increase" disabled={value >= max} onClick={() => onChange(clamp(value + 1))}>
+          <Plus />
+        </InputGroupButton>
+      </InputGroupAddon>
+    </InputGroup>
   )
 }

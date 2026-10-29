@@ -1,11 +1,12 @@
 import { useState, type FormEvent, type ReactNode } from "react"
-import { Field } from "@/shared/ui/field"
-import { Input, Textarea } from "@/shared/ui/input"
-import { Autocomplete } from "@/shared/ui/autocomplete"
+import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel, FieldLegend, FieldSet } from "@/components/ui/field"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { DatePicker } from "@/shared/ui/date-picker"
 import { formatPhone } from "@/shared/lib/phone"
 import type { BorrowerDetails, LoanDraft } from "../domain/loan"
 import { validateDraft, type DraftErrors } from "../domain/validate-draft"
+import { BorrowerNameField } from "./borrower-name-field"
 import { LineItemsEditor } from "./line-items-editor"
 
 export interface BorrowerSuggestion {
@@ -67,67 +68,69 @@ export function LoanForm({ formId, initial, findBorrowers, borrowerExtra, onBorr
 
   const suggestions = findBorrowers && draft.borrower.name.trim().length >= 1 ? findBorrowers(draft.borrower.name) : []
   const id = (path: string) => fieldId(formId, path)
-  const errorProps = (path: string) =>
-    errors[path] ? { "aria-invalid": true as const, "aria-describedby": `${id(path)}-error` } : {}
+  const invalid = (path: string) => (errors[path] ? true : undefined)
+  const describedBy = (path: string) => (errors[path] ? `${id(path)}-error` : undefined)
+  const errorText = (path: string) => errors[path] && <FieldError id={`${id(path)}-error`}>{errors[path]}</FieldError>
 
   return (
-    <form id={formId} onSubmit={handleSubmit} noValidate className="flex flex-col gap-7">
-      <FormSection title="Borrower">
-        <div className="grid gap-4 md:grid-cols-2">
-          <Field label="Name" htmlFor={id("borrower.name")} error={errors["borrower.name"]} className="md:col-span-2">
-            <Autocomplete
+    <form id={formId} onSubmit={handleSubmit} noValidate className="flex flex-col gap-8">
+      <FieldSet>
+        <FieldLegend variant="label" className="text-xs tracking-wide text-muted-foreground uppercase">
+          Borrower
+        </FieldLegend>
+        <FieldGroup className="grid gap-4 md:grid-cols-2">
+          <Field data-invalid={invalid("borrower.name")} className="md:col-span-2">
+            <FieldLabel htmlFor={id("borrower.name")}>Name</FieldLabel>
+            <BorrowerNameField
               id={id("borrower.name")}
-              autoFocus
               value={draft.borrower.name}
-              placeholder="Start typing a name"
-              groupLabel="Past borrowers"
-              invalid={Boolean(errors["borrower.name"])}
-              describedBy={errors["borrower.name"] ? `${id("borrower.name")}-error` : undefined}
+              suggestions={suggestions}
+              invalid={invalid("borrower.name")}
+              describedBy={describedBy("borrower.name")}
               onValueChange={(name) => update({ ...draft, borrower: { ...draft.borrower, name } })}
-              options={suggestions.map((suggestion) => ({
-                key: suggestion.key,
-                label: suggestion.details.name,
-                detail: suggestion.detail,
-              }))}
-              onPick={(option) => {
-                const picked = suggestions.find((suggestion) => suggestion.key === option.key)
-                if (!picked) return
+              onPick={(picked) => {
                 update({ ...draft, borrower: { ...picked.details } })
                 onBorrowerPicked?.(picked)
               }}
             />
+            {errorText("borrower.name")}
           </Field>
-          <Field label="Cellphone" htmlFor={id("borrower.cellphone")} error={errors["borrower.cellphone"]}>
+          <Field data-invalid={invalid("borrower.cellphone")}>
+            <FieldLabel htmlFor={id("borrower.cellphone")}>Cellphone</FieldLabel>
             <Input
               id={id("borrower.cellphone")}
               type="tel"
               inputMode="tel"
               placeholder="082 123 4567"
               value={draft.borrower.cellphone}
+              aria-invalid={invalid("borrower.cellphone")}
+              aria-describedby={describedBy("borrower.cellphone")}
               onChange={(event) => setBorrower({ cellphone: event.target.value })}
               onBlur={() => draft.borrower.cellphone && setBorrower({ cellphone: formatPhone(draft.borrower.cellphone) })}
-              {...errorProps("borrower.cellphone")}
             />
+            {errorText("borrower.cellphone")}
           </Field>
-          <Field
-            label="WhatsApp"
-            htmlFor={id("borrower.whatsapp")}
-            optional
-            hint={!errors["borrower.whatsapp"] ? "Leave empty if it's the same as the cellphone" : undefined}
-            error={errors["borrower.whatsapp"]}
-          >
+          <Field data-invalid={invalid("borrower.whatsapp")}>
+            <FieldLabel htmlFor={id("borrower.whatsapp")}>
+              WhatsApp <span className="font-normal text-muted-foreground">(optional)</span>
+            </FieldLabel>
             <Input
               id={id("borrower.whatsapp")}
               type="tel"
               inputMode="tel"
               placeholder="Same as cellphone"
               value={draft.borrower.whatsapp}
+              aria-invalid={invalid("borrower.whatsapp")}
+              aria-describedby={describedBy("borrower.whatsapp")}
               onChange={(event) => setBorrower({ whatsapp: event.target.value })}
               onBlur={() => draft.borrower.whatsapp && setBorrower({ whatsapp: formatPhone(draft.borrower.whatsapp) })}
-              {...errorProps("borrower.whatsapp")}
             />
+            {errorText("borrower.whatsapp") || <FieldDescription>Leave empty if it's the same as the cellphone</FieldDescription>}
           </Field>
-          <Field label="Section or department" htmlFor={id("borrower.department")} optional>
+          <Field>
+            <FieldLabel htmlFor={id("borrower.department")}>
+              Section or department <span className="font-normal text-muted-foreground">(optional)</span>
+            </FieldLabel>
             <Input
               id={id("borrower.department")}
               placeholder="e.g. Maintenance"
@@ -135,7 +138,10 @@ export function LoanForm({ formId, initial, findBorrowers, borrowerExtra, onBorr
               onChange={(event) => setBorrower({ department: event.target.value })}
             />
           </Field>
-          <Field label="Employee / work number" htmlFor={id("borrower.employeeNumber")} optional>
+          <Field>
+            <FieldLabel htmlFor={id("borrower.employeeNumber")}>
+              Employee / work number <span className="font-normal text-muted-foreground">(optional)</span>
+            </FieldLabel>
             <Input
               id={id("borrower.employeeNumber")}
               placeholder="e.g. E1042"
@@ -143,53 +149,56 @@ export function LoanForm({ formId, initial, findBorrowers, borrowerExtra, onBorr
               onChange={(event) => setBorrower({ employeeNumber: event.target.value })}
             />
           </Field>
-        </div>
+        </FieldGroup>
         {borrowerExtra?.(draft.borrower)}
-      </FormSection>
+      </FieldSet>
 
-      <FormSection title="Items">
-        <LineItemsEditor
-          formId={formId}
-          lines={draft.lines}
-          errors={errors}
-          onChange={(lines) => update({ ...draft, lines })}
-        />
-      </FormSection>
+      <FieldSet>
+        <FieldLegend variant="label" className="text-xs tracking-wide text-muted-foreground uppercase">
+          Items
+        </FieldLegend>
+        <LineItemsEditor formId={formId} lines={draft.lines} errors={errors} onChange={(lines) => update({ ...draft, lines })} />
+      </FieldSet>
 
-      <FormSection title="Dates">
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Start date" htmlFor={id("startDate")} error={errors.startDate}>
-            <DatePicker
-              id={id("startDate")}
-              value={draft.startDate}
-              onChange={(startDate) => update({ ...draft, startDate })}
-              invalid={Boolean(errors.startDate)}
-            />
+      <FieldSet>
+        <FieldLegend variant="label" className="text-xs tracking-wide text-muted-foreground uppercase">
+          Dates
+        </FieldLegend>
+        <FieldGroup className="grid gap-4 sm:grid-cols-2">
+          <Field data-invalid={invalid("startDate")}>
+            <FieldLabel htmlFor={id("startDate")}>Start date</FieldLabel>
+            <DatePicker id={id("startDate")} value={draft.startDate} onChange={(startDate) => update({ ...draft, startDate })} invalid={invalid("startDate")} />
+            {errorText("startDate")}
           </Field>
-          <Field label="Expected return date" htmlFor={id("expectedReturnDate")} error={errors.expectedReturnDate}>
+          <Field data-invalid={invalid("expectedReturnDate")}>
+            <FieldLabel htmlFor={id("expectedReturnDate")}>Expected return date</FieldLabel>
             <DatePicker
               id={id("expectedReturnDate")}
               min={draft.startDate}
               value={draft.expectedReturnDate}
               onChange={(expectedReturnDate) => update({ ...draft, expectedReturnDate })}
-              invalid={Boolean(errors.expectedReturnDate)}
-              describedBy={errors.expectedReturnDate ? `${id("expectedReturnDate")}-error` : undefined}
+              invalid={invalid("expectedReturnDate")}
+              describedBy={describedBy("expectedReturnDate")}
             />
+            {errorText("expectedReturnDate")}
           </Field>
-        </div>
-      </FormSection>
+        </FieldGroup>
+      </FieldSet>
 
-      <FormSection title="Details">
-        <div className="grid gap-4">
-          <Field label="Issued by" htmlFor={id("issuedBy")} hint="The staff member handing the items over">
-            <Input
-              id={id("issuedBy")}
-              placeholder="Your name"
-              value={draft.issuedBy}
-              onChange={(event) => setDraft({ ...draft, issuedBy: event.target.value })}
-            />
+      <FieldSet>
+        <FieldLegend variant="label" className="text-xs tracking-wide text-muted-foreground uppercase">
+          Details
+        </FieldLegend>
+        <FieldGroup>
+          <Field>
+            <FieldLabel htmlFor={id("issuedBy")}>Issued by</FieldLabel>
+            <Input id={id("issuedBy")} placeholder="Your name" value={draft.issuedBy} onChange={(event) => setDraft({ ...draft, issuedBy: event.target.value })} />
+            <FieldDescription>The staff member handing the items over</FieldDescription>
           </Field>
-          <Field label="Notes" htmlFor={id("notes")} optional>
+          <Field>
+            <FieldLabel htmlFor={id("notes")}>
+              Notes <span className="font-normal text-muted-foreground">(optional)</span>
+            </FieldLabel>
             <Textarea
               id={id("notes")}
               rows={2}
@@ -198,8 +207,8 @@ export function LoanForm({ formId, initial, findBorrowers, borrowerExtra, onBorr
               onChange={(event) => setDraft({ ...draft, notes: event.target.value })}
             />
           </Field>
-        </div>
-      </FormSection>
+        </FieldGroup>
+      </FieldSet>
       {/* Lets Enter submit even though the visible button lives in the dialog footer. */}
       <button type="submit" hidden aria-hidden tabIndex={-1} />
     </form>
@@ -208,13 +217,4 @@ export function LoanForm({ formId, initial, findBorrowers, borrowerExtra, onBorr
 
 function fieldId(formId: string, path: string): string {
   return `${formId}-${path.replace(/\./g, "-")}`
-}
-
-function FormSection({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <fieldset className="flex flex-col gap-3.5">
-      <legend className="mb-3.5 text-xs font-medium tracking-wide text-faint uppercase">{title}</legend>
-      {children}
-    </fieldset>
-  )
 }
