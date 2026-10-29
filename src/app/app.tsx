@@ -2,6 +2,8 @@ import { HashRouter, Route, Routes } from "react-router-dom"
 import { ShieldAlert } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AppShell } from "@/widgets/app-shell/app-shell"
+import { BackupBanner } from "@/features/backup"
+import { BackupPage } from "@/widgets/backup-page/backup-page"
 import { BorrowerProfile } from "@/widgets/borrower-profile/borrower-profile"
 import { BorrowersPage } from "@/widgets/borrowers-page/borrowers-page"
 import { Dashboard } from "@/widgets/dashboard/dashboard"
@@ -27,7 +29,9 @@ export function App({ repositories }: { repositories: Repositories }) {
                 <ShieldAlert />
                 <AlertDescription>{repositories.store.readOnlyReason}</AlertDescription>
               </Alert>
-            ) : undefined
+            ) : (
+              <BackupBanner />
+            )
           }
         >
           <Routes>
@@ -36,6 +40,7 @@ export function App({ repositories }: { repositories: Repositories }) {
             <Route path="/loans/:loanId" element={<LoanDetail />} />
             <Route path="/borrowers" element={<BorrowersPage />} />
             <Route path="/borrowers/:borrowerKey" element={<BorrowerProfile />} />
+            <Route path="/backup" element={<BackupPage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="*" element={<Dashboard />} />
           </Routes>
