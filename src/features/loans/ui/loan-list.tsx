@@ -2,7 +2,8 @@ import type { ReactNode } from "react"
 import { AnimatePresence, motion } from "motion/react"
 import { CalendarPlus, Ellipsis, Pencil, Trash2, Undo2 } from "lucide-react"
 import { Button } from "@/shared/ui/button"
-import { Checkbox } from "@/shared/ui/checkbox"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Menu } from "@/shared/ui/menu"
 import { cn } from "@/shared/lib/cn"
 import { formatDate, formatRelativeDay, type IsoDate } from "@/shared/lib/dates"
@@ -47,36 +48,38 @@ function toggle(ids: ReadonlySet<string>, id: string): Set<string> {
   return next
 }
 
+const MotionRow = motion.create(TableRow)
+
 function LoanTable({ loans, today, selectedIds, onSelectionChange, onOpen, renderQuickActions }: LoanListProps) {
   const allSelected = loans.length > 0 && loans.every((loan) => selectedIds.has(loan.id))
   const someSelected = !allSelected && loans.some((loan) => selectedIds.has(loan.id))
 
   return (
-    <table className="w-full table-fixed border-collapse text-sm">
-      <thead>
-        <tr className="border-b border-border bg-sidebar text-left text-[13px] text-muted-foreground">
-          <th className="w-12 py-2.5 pl-4 font-normal">
+    <Table className="table-fixed">
+      <TableHeader>
+        <TableRow className="bg-sidebar text-[13px] hover:bg-sidebar">
+          <TableHead className="h-10 w-12 pl-4">
             <Checkbox
-              label="Select all loans"
+              aria-label="Select all loans"
               checked={allSelected}
               indeterminate={someSelected}
               onCheckedChange={(checked) => onSelectionChange(checked ? new Set(loans.map((loan) => loan.id)) : new Set())}
             />
-          </th>
-          <th className="w-[24%] py-2.5 pr-4 font-normal">Borrower</th>
-          <th className="py-2.5 pr-4 font-normal">Items</th>
-          <th className="w-[17%] py-2.5 pr-4 font-normal">Return date</th>
-          <th className="w-[13%] py-2.5 pr-4 font-normal">Status</th>
-          <th className="w-[200px] py-2.5 pr-4 text-right font-normal">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
+          </TableHead>
+          <TableHead className="h-10 w-[24%] font-normal text-muted-foreground">Borrower</TableHead>
+          <TableHead className="h-10 font-normal text-muted-foreground">Items</TableHead>
+          <TableHead className="h-10 w-[17%] font-normal text-muted-foreground">Return date</TableHead>
+          <TableHead className="h-10 w-[13%] font-normal text-muted-foreground">Status</TableHead>
+          <TableHead className="h-10 w-[200px] pr-4 text-right font-normal text-muted-foreground">Actions</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
         <AnimatePresence initial={false}>
           {loans.map((loan) => {
             const status = loanStatus(loan, today)
             const selected = selectedIds.has(loan.id)
             return (
-              <motion.tr
+              <MotionRow
                 key={loan.id}
                 layout="position"
                 initial={{ opacity: 0 }}
@@ -84,47 +87,45 @@ function LoanTable({ loans, today, selectedIds, onSelectionChange, onOpen, rende
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.18 }}
                 onClick={() => onOpen(loan)}
-                className={cn(
-                  "group cursor-pointer border-b border-border transition-colors last:border-b-0 hover:bg-sidebar",
-                  selected && "bg-blue-tint/40 hover:bg-blue-tint/60",
-                )}
+                data-state={selected ? "selected" : undefined}
+                className="group cursor-pointer hover:bg-sidebar data-[state=selected]:bg-blue-tint/40"
               >
-                <td className="py-3 pl-4" onClick={(event) => event.stopPropagation()}>
+                <TableCell className="pl-4" onClick={(event) => event.stopPropagation()}>
                   <Checkbox
-                    label={`Select loan for ${loan.borrower.name}`}
+                    aria-label={`Select loan for ${loan.borrower.name}`}
                     checked={selected}
                     onCheckedChange={() => onSelectionChange(toggle(selectedIds, loan.id))}
                   />
-                </td>
-                <td className="py-3 pr-4">
+                </TableCell>
+                <TableCell className="whitespace-normal">
                   <BorrowerName loan={loan} status={status} />
                   <p className="truncate text-xs text-muted-foreground">{loan.borrower.department || loan.borrower.cellphone || "—"}</p>
-                </td>
-                <td className="py-3 pr-4">
+                </TableCell>
+                <TableCell>
                   <ItemsSummary loan={loan} />
-                </td>
-                <td className="py-3 pr-4">
+                </TableCell>
+                <TableCell className="whitespace-normal">
                   <div className="flex flex-wrap items-center gap-1.5">
                     <span className="tabular">{formatDate(loan.expectedReturnDate)}</span>
                     <ExtensionMark loan={loan} />
                   </div>
                   {status !== "returned" && <p className="text-xs text-muted-foreground">{formatRelativeDay(loan.expectedReturnDate, today)}</p>}
-                </td>
-                <td className="py-3 pr-4">
+                </TableCell>
+                <TableCell>
                   <LoanStatusPill status={status} overdueDays={overdueDays(loan, today)} />
-                </td>
-                <td className="py-3 pr-4" onClick={(event) => event.stopPropagation()}>
+                </TableCell>
+                <TableCell className="pr-4" onClick={(event) => event.stopPropagation()}>
                   <div className="flex items-center justify-end gap-1.5">
                     {renderQuickActions?.(loan, status)}
                     <RowActions loan={loan} status={status} />
                   </div>
-                </td>
-              </motion.tr>
+                </TableCell>
+              </MotionRow>
             )
           })}
         </AnimatePresence>
-      </tbody>
-    </table>
+      </TableBody>
+    </Table>
   )
 }
 
@@ -148,7 +149,7 @@ function LoanCards({ loans, today, selectedIds, onSelectionChange, onOpen, rende
               <div className="flex items-start gap-3">
                 <div className="pt-0.5">
                   <Checkbox
-                    label={`Select loan for ${loan.borrower.name}`}
+                    aria-label={`Select loan for ${loan.borrower.name}`}
                     checked={selected}
                     onCheckedChange={() => onSelectionChange(toggle(selectedIds, loan.id))}
                   />

@@ -1,20 +1,35 @@
 import { useEffect, type ReactNode } from "react"
-import { NavLink, useLocation, useNavigate } from "react-router-dom"
+import { Link, matchPath, useLocation, useNavigate } from "react-router-dom"
 import { motion } from "motion/react"
 import { Plus, Search } from "lucide-react"
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarInset,
+  SidebarMenu,
+  SidebarMenuBadge,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+} from "@/components/ui/sidebar"
+import { Kbd } from "@/components/ui/kbd"
+import { Button } from "@/components/ui/button"
 import { countByTab, useLoanEditor, useLoans } from "@/features/loans"
-import { cn } from "@/shared/lib/cn"
 import { todayIso } from "@/shared/lib/dates"
 import { CountBadge } from "@/shared/ui/pill"
-import { Kbd } from "@/shared/ui/search-field"
 import { BrandMark } from "./brand-mark"
 import { DATA_NAV, MAIN_NAV, type NavItem } from "./nav-items"
 import { MobileNav } from "./mobile-nav"
 
 /**
- * The frame around every screen: a quiet grey sidebar on desktop (after the
- * sidebar reference, flush with no inset and without its segmented control)
- * and a bottom bar with a central Issue button on phones.
+ * The frame around every screen, built on the shadcn Sidebar: flush on
+ * desktop (the default "sidebar" variant, no inset, and none of the
+ * reference's segmented control), a slide-over sheet on phones, plus a bottom
+ * bar with a central Issue button so issuing stays one tap away.
  */
 export function AppShell({ children, banner }: { children: ReactNode; banner?: ReactNode }) {
   const { openNew } = useLoanEditor()
@@ -26,7 +41,7 @@ export function AppShell({ children, banner }: { children: ReactNode; banner?: R
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement
-      const typing = target.closest("input, textarea, select, [contenteditable=true], [role=dialog]")
+      const typing = target.closest("input, textarea, select, [contenteditable=true], [role=dialog], [role=alertdialog]")
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault()
         navigate("/loans?focus=search")
@@ -40,96 +55,90 @@ export function AppShell({ children, banner }: { children: ReactNode; banner?: R
   }, [navigate, openNew])
 
   return (
-    <div className="flex min-h-dvh bg-background">
-      <aside className="sticky top-0 hidden h-dvh w-[248px] shrink-0 flex-col border-r border-border bg-sidebar px-3 py-3 lg:flex">
-        <div className="flex items-center justify-between px-2 pb-5">
+    <SidebarProvider>
+      <Sidebar collapsible="offcanvas">
+        <SidebarHeader className="flex-row items-center justify-between px-4 pt-4 pb-3">
           <div className="flex items-center gap-2.5">
             <BrandMark />
             <span className="text-[15px] font-semibold tracking-[-0.01em]">Tally</span>
           </div>
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            className="rounded-lg text-muted-foreground"
             onClick={() => navigate("/loans?focus=search")}
             aria-label="Search loans"
             title="Search (Ctrl K)"
-            className="inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-subtle hover:text-foreground"
           >
-            <Search className="size-[18px]" />
-          </button>
-        </div>
+            <Search />
+          </Button>
+        </SidebarHeader>
 
-        <button
-          type="button"
-          onClick={() => openNew()}
-          className="group mb-1 flex h-9 items-center gap-3 rounded-lg px-2.5 text-sm text-muted-foreground transition-colors hover:bg-subtle hover:text-foreground"
-        >
-          <Plus className="size-[18px] transition-transform duration-200 group-hover:rotate-90" />
-          <span className="flex-1 text-left">New loan</span>
-          <Kbd>N</Kbd>
-        </button>
+        <SidebarContent>
+          <SidebarGroup className="pt-0">
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={() => openNew()} className="group/new rounded-lg text-muted-foreground">
+                  <Plus className="transition-transform duration-200 group-hover/new:rotate-90" />
+                  <span>New loan</span>
+                </SidebarMenuButton>
+                <SidebarMenuBadge>
+                  <Kbd>N</Kbd>
+                </SidebarMenuBadge>
+              </SidebarMenuItem>
+              {MAIN_NAV.map((item) => (
+                <NavEntry key={item.to} item={item} badge={item.badge === "overdue" ? overdue : 0} />
+              ))}
+            </SidebarMenu>
+          </SidebarGroup>
 
-        <nav aria-label="Main" className="flex flex-col gap-0.5">
-          {MAIN_NAV.map((item) => (
-            <SidebarLink key={item.to} item={item} badge={item.badge === "overdue" ? overdue : 0} />
-          ))}
-        </nav>
+          <SidebarGroup>
+            <SidebarGroupLabel>Data</SidebarGroupLabel>
+            <SidebarMenu>
+              {DATA_NAV.map((item) => (
+                <NavEntry key={item.to} item={item} />
+              ))}
+            </SidebarMenu>
+          </SidebarGroup>
+        </SidebarContent>
 
-        <p className="mt-7 mb-1.5 px-2.5 text-xs text-faint">Data</p>
-        <nav aria-label="Data" className="flex flex-col gap-0.5">
-          {DATA_NAV.map((item) => (
-            <SidebarLink key={item.to} item={item} />
-          ))}
-        </nav>
+        <SidebarFooter className="px-4 pb-4">
+          <div className="flex items-center gap-2 text-xs text-faint">
+            <span className="relative flex size-2">
+              <span className="absolute inline-flex size-full animate-ping rounded-full bg-green-text/40 [animation-duration:3s]" />
+              <span className="relative inline-flex size-2 rounded-full bg-green-text" />
+            </span>
+            Saved in this browser
+          </div>
+        </SidebarFooter>
+      </Sidebar>
 
-        <div className="mt-auto flex items-center gap-2 px-2.5 text-xs text-faint">
-          <span className="relative flex size-2">
-            <span className="absolute inline-flex size-full animate-ping rounded-full bg-green-text/40 [animation-duration:3s]" />
-            <span className="relative inline-flex size-2 rounded-full bg-green-text" />
-          </span>
-          Saved in this browser
-        </div>
-      </aside>
-
-      <div className="flex min-w-0 flex-1 flex-col pb-[calc(4.75rem+env(safe-area-inset-bottom))] lg:pb-0">
-        <main className="relative flex min-h-full flex-1 flex-col bg-background">
-          {banner}
-          <RouteFade>{children}</RouteFade>
-        </main>
-      </div>
+      <SidebarInset className="min-w-0 pb-[calc(4.75rem+env(safe-area-inset-bottom))] md:pb-0">
+        {banner}
+        <RouteFade>{children}</RouteFade>
+      </SidebarInset>
 
       <MobileNav overdue={overdue} onNewLoan={() => openNew()} />
-    </div>
+    </SidebarProvider>
   )
 }
 
-function SidebarLink({ item, badge = 0 }: { item: NavItem; badge?: number }) {
+function NavEntry({ item, badge = 0 }: { item: NavItem; badge?: number }) {
+  const location = useLocation()
+  const active = matchPath({ path: item.to, end: item.to === "/" }, location.pathname) !== null
   const Icon = item.icon
   return (
-    <NavLink
-      to={item.to}
-      end={item.to === "/"}
-      className={({ isActive }) =>
-        cn(
-          "relative flex h-9 items-center gap-3 rounded-lg px-2.5 text-sm transition-colors",
-          isActive ? "font-medium text-foreground" : "text-muted-foreground hover:bg-subtle hover:text-foreground",
-        )
-      }
-    >
-      {({ isActive }) => (
-        <>
-          {isActive && (
-            <motion.span
-              layoutId="sidebar-active"
-              className="absolute inset-0 rounded-lg bg-subtle-strong/70"
-              transition={{ type: "spring", stiffness: 500, damping: 40 }}
-            />
-          )}
-          <Icon className="relative size-[18px]" />
-          <span className="relative flex-1">{item.label}</span>
-          <CountBadge count={badge} className="relative" />
-        </>
+    <SidebarMenuItem>
+      <SidebarMenuButton isActive={active} render={<Link to={item.to} />} className="rounded-lg data-active:bg-sidebar-accent">
+        <Icon />
+        <span>{item.label}</span>
+      </SidebarMenuButton>
+      {badge > 0 && (
+        <SidebarMenuBadge>
+          <CountBadge count={badge} />
+        </SidebarMenuBadge>
       )}
-    </NavLink>
+    </SidebarMenuItem>
   )
 }
 

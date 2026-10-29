@@ -13,6 +13,7 @@ import {
   type LoanDraft,
 } from "@/features/loans"
 import { useSettings } from "@/features/settings"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/shared/ui/button"
 import { Dialog } from "@/shared/ui/dialog"
 import { useToast } from "@/shared/ui/toast"
@@ -91,12 +92,12 @@ export function LoanEditor() {
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden"
           >
-            <div role="status" className="mb-6 flex items-center gap-2.5 rounded-lg bg-green-tint px-3 py-2.5 text-[13px] text-green-text">
-              <CircleCheck className="size-4 shrink-0" />
-              <span className="min-w-0 flex-1">
+            <Alert role="status" className="mb-6 rounded-lg border-green-text/15 bg-green-tint text-green-text">
+              <CircleCheck />
+              <AlertDescription className="text-[13px] text-green-text">
                 Saved for <strong className="font-semibold">{lastSaved.borrower.name}</strong>. Ready for the next borrower.
-              </span>
-            </div>
+              </AlertDescription>
+            </Alert>
           </motion.div>
         )}
       </AnimatePresence>

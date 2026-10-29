@@ -2,7 +2,7 @@ import { useState } from "react"
 import { Button } from "@/shared/ui/button"
 import { Dialog } from "@/shared/ui/dialog"
 import { Field } from "@/shared/ui/field"
-import { Input } from "@/shared/ui/input"
+import { DatePicker } from "@/shared/ui/date-picker"
 import { addDays, formatDate, todayIso } from "@/shared/lib/dates"
 import type { Loan } from "../domain/loan"
 
@@ -65,30 +65,30 @@ function ExtendForm({ loan, onExtend }: { loan: Loan; onExtend: (date: string) =
         {QUICK_PICKS.map((pick) => {
           const value = addDays(base, pick.days)
           return (
-            <button
+            <Button
               key={pick.label}
               type="button"
+              size="sm"
+              variant={date === value ? "primary" : "outline"}
+              aria-pressed={date === value}
               onClick={() => {
                 setDate(value)
                 setError(undefined)
               }}
-              aria-pressed={date === value}
-              className="h-8 rounded-full border border-border-strong px-3 text-[13px] text-ink-soft transition-colors hover:bg-subtle aria-pressed:border-primary aria-pressed:bg-primary aria-pressed:text-primary-foreground"
+              className="rounded-full"
             >
               {pick.label}
-            </button>
+            </Button>
           )
         })}
       </div>
       <Field label="New return date" htmlFor="extend-date" error={error}>
-        <Input
+        <DatePicker
           id="extend-date"
-          type="date"
-          autoFocus
           min={loan.startDate}
           value={date}
-          onChange={(event) => {
-            setDate(event.target.value)
+          onChange={(next) => {
+            setDate(next)
             setError(undefined)
           }}
         />

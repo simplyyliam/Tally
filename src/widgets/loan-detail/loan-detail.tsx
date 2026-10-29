@@ -1,6 +1,6 @@
 import type { ReactNode } from "react"
 import { useNavigate, useParams } from "react-router-dom"
-import { ArrowLeft, CalendarPlus, FileQuestion, Pencil, Trash2 } from "lucide-react"
+import { CalendarPlus, FileQuestion, Pencil, Trash2 } from "lucide-react"
 import {
   BorrowerName,
   ExtensionMark,
@@ -64,12 +64,11 @@ function LoanDetailView({ loan }: { loan: Loan }) {
   return (
     <>
       <PageHeader
-        icon={
-          <button type="button" aria-label="Back" onClick={() => navigate(-1)} className="-ml-0.5 rounded hover:text-foreground">
-            <ArrowLeft />
-          </button>
-        }
         title={loan.borrower.name}
+        breadcrumbs={[
+          { label: "Dashboard", to: "/" },
+          { label: "Loans", to: "/loans" },
+        ]}
         actions={
           <div className="hidden items-center gap-2 md:flex">
             <Button variant="ghost" size="sm" onClick={() => openEdit(loan.id)}>

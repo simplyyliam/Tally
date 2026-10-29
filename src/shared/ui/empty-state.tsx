@@ -1,5 +1,6 @@
 import type { ReactNode } from "react"
 import { motion } from "motion/react"
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { cn } from "@/shared/lib/cn"
 
 interface EmptyStateProps {
@@ -10,20 +11,25 @@ interface EmptyStateProps {
   className?: string
 }
 
+/** The shadcn Empty state with a soft fade-in. */
 export function EmptyState({ icon, title, description, action, className }: EmptyStateProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-      className={cn("flex flex-col items-center justify-center px-6 py-14 text-center", className)}
+      className="flex flex-1"
     >
-      <div className="mb-4 flex size-11 items-center justify-center rounded-xl border border-border bg-background text-muted-foreground shadow-card [&_svg]:size-5">
-        {icon}
-      </div>
-      <p className="text-sm font-medium text-foreground">{title}</p>
-      {description && <p className="mt-1 max-w-sm text-[13px] leading-relaxed text-muted-foreground">{description}</p>}
-      {action && <div className="mt-5 flex flex-wrap items-center justify-center gap-2">{action}</div>}
+      <Empty className={cn("py-14", className)}>
+        <EmptyHeader>
+          <EmptyMedia variant="icon" className="rounded-xl border border-border bg-background text-muted-foreground shadow-card">
+            {icon}
+          </EmptyMedia>
+          <EmptyTitle className="text-sm">{title}</EmptyTitle>
+          {description && <EmptyDescription className="text-[13px]">{description}</EmptyDescription>}
+        </EmptyHeader>
+        {action && <EmptyContent className="flex-row flex-wrap justify-center">{action}</EmptyContent>}
+      </Empty>
     </motion.div>
   )
 }

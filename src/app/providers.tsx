@@ -2,11 +2,13 @@ import type { ReactNode } from "react"
 import { LoanActionsProvider, LoanEditorStateProvider, LoanRepositoryProvider } from "@/features/loans"
 import { SettingsRepositoryProvider } from "@/features/settings"
 import { ReminderChannelProvider } from "@/features/reminders"
+import { TooltipProvider } from "@/components/ui/tooltip"
 import { ToastProvider } from "@/shared/ui/toast"
 import type { Repositories } from "./repositories"
 
 export function Providers({ repositories, children }: { repositories: Repositories; children: ReactNode }) {
   return (
+    <TooltipProvider>
     <ToastProvider>
       <SettingsRepositoryProvider repository={repositories.settings}>
         <LoanRepositoryProvider repository={repositories.loans}>
@@ -18,5 +20,6 @@ export function Providers({ repositories, children }: { repositories: Repositori
         </LoanRepositoryProvider>
       </SettingsRepositoryProvider>
     </ToastProvider>
+    </TooltipProvider>
   )
 }

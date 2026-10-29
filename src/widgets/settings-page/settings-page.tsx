@@ -22,7 +22,7 @@ export function SettingsPage() {
 
   return (
     <>
-      <PageHeader icon={<Settings />} title="Settings" />
+      <PageHeader icon={<Settings />} title="Settings" breadcrumbs={[{ label: "Dashboard", to: "/" }]} />
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-5 md:px-6 md:py-6">
         <Panel title="You" description="Who is using this register on this device">
           <form

@@ -2,6 +2,7 @@ import { useState, type FormEvent, type ReactNode } from "react"
 import { Field } from "@/shared/ui/field"
 import { Input, Textarea } from "@/shared/ui/input"
 import { Autocomplete } from "@/shared/ui/autocomplete"
+import { DatePicker } from "@/shared/ui/date-picker"
 import { formatPhone } from "@/shared/lib/phone"
 import type { BorrowerDetails, LoanDraft } from "../domain/loan"
 import { validateDraft, type DraftErrors } from "../domain/validate-draft"
@@ -79,6 +80,7 @@ export function LoanForm({ formId, initial, findBorrowers, borrowerExtra, onBorr
               autoFocus
               value={draft.borrower.name}
               placeholder="Start typing a name"
+              groupLabel="Past borrowers"
               invalid={Boolean(errors["borrower.name"])}
               describedBy={errors["borrower.name"] ? `${id("borrower.name")}-error` : undefined}
               onValueChange={(name) => update({ ...draft, borrower: { ...draft.borrower, name } })}
@@ -157,22 +159,21 @@ export function LoanForm({ formId, initial, findBorrowers, borrowerExtra, onBorr
       <FormSection title="Dates">
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Start date" htmlFor={id("startDate")} error={errors.startDate}>
-            <Input
+            <DatePicker
               id={id("startDate")}
-              type="date"
               value={draft.startDate}
-              onChange={(event) => update({ ...draft, startDate: event.target.value })}
-              {...errorProps("startDate")}
+              onChange={(startDate) => update({ ...draft, startDate })}
+              invalid={Boolean(errors.startDate)}
             />
           </Field>
           <Field label="Expected return date" htmlFor={id("expectedReturnDate")} error={errors.expectedReturnDate}>
-            <Input
+            <DatePicker
               id={id("expectedReturnDate")}
-              type="date"
               min={draft.startDate}
               value={draft.expectedReturnDate}
-              onChange={(event) => update({ ...draft, expectedReturnDate: event.target.value })}
-              {...errorProps("expectedReturnDate")}
+              onChange={(expectedReturnDate) => update({ ...draft, expectedReturnDate })}
+              invalid={Boolean(errors.expectedReturnDate)}
+              describedBy={errors.expectedReturnDate ? `${id("expectedReturnDate")}-error` : undefined}
             />
           </Field>
         </div>
