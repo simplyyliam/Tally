@@ -193,9 +193,9 @@ function LoanCards({ loans, today, selectedIds, onSelectionChange, onOpen, rende
 }
 
 export function ReturnButton({ loan, className, size = "sm" }: { loan: Loan; className?: string; size?: "sm" | "default" | "lg" }) {
-  const { returnLoans } = useLoanActions()
+  const { requestReturn } = useLoanActions()
   return (
-    <Button size={size} className={className} onClick={() => void returnLoans([loan])}>
+    <Button size={size} className={className} onClick={() => requestReturn(loan)}>
       <Undo2 data-icon="inline-start" />
       Return
     </Button>

@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/shared/lib/cn"
 import type { Loan } from "../domain/loan"
-import { remainingQuantity, type LoanStatus } from "../domain/status"
+import { isPartlyReturned, outstandingQuantity, remainingQuantity, totalQuantity, type LoanStatus } from "../domain/status"
 
 /**
  * The borrower's name as the register shows it: red while overdue, struck
@@ -30,6 +30,11 @@ export function ItemsSummary({ loan }: { loan: Loan }) {
       <span className={cn("truncate", remainingQuantity(first) === 0 && rest.length > 0 && "text-muted-foreground line-through")}>
         <span className="text-muted-foreground tabular">{first.quantity} ×</span> {first.description}
       </span>
+      {isPartlyReturned(loan) && (
+        <Badge variant="secondary" className="text-muted-foreground" title="Some items are back">
+          {outstandingQuantity(loan)} of {totalQuantity(loan)} out
+        </Badge>
+      )}
       {rest.length > 0 && (
         <Badge variant="outline" className="text-muted-foreground" title={rest.map((line) => `${line.quantity} × ${line.description}`).join(", ")}>
           +{rest.length}

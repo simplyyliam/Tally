@@ -67,17 +67,42 @@ export function editLoan(loan: Loan, draft: LoanDraft, context: ChangeContext): 
   }
 }
 
+export class LoanChangeError extends Error {}
+
 /** Marks every line as fully returned. */
 export function returnAllItems(loan: Loan, at: string): Loan {
-  return {
-    ...loan,
-    lines: loan.lines.map((line) => ({ ...line, quantityReturned: line.quantity })),
-    returnedAt: loan.returnedAt ?? at,
-    updatedAt: at,
-  }
+  return returnLines(
+    loan,
+    Object.fromEntries(loan.lines.map((line) => [line.id, line.quantity - line.quantityReturned])),
+    at,
+  )
 }
 
-export class LoanChangeError extends Error {}
+/**
+ * Records items coming back, per line: { lineId: how many came back now }.
+ *
+ * A partial return keeps the loan open on purpose: whatever is still out
+ * remains the borrower's responsibility, keeps its due date and still turns
+ * overdue. The loan only counts as returned once every line is back.
+ */
+export function returnLines(loan: Loan, returning: Readonly<Record<string, number>>, at: string): Loan {
+  for (const [lineId, count] of Object.entries(returning)) {
+    const line = loan.lines.find((candidate) => candidate.id === lineId)
+    if (!line) throw new LoanChangeError("That item isn't on this loan.")
+    if (!Number.isInteger(count) || count < 0) throw new LoanChangeError("Return a whole number of items.")
+    if (count > line.quantity - line.quantityReturned) {
+      throw new LoanChangeError(`Only ${line.quantity - line.quantityReturned} × ${line.description} still out.`)
+    }
+  }
+  const lines = loan.lines.map((line) => {
+    const count = returning[line.id] ?? 0
+    if (count === 0) return line
+    const quantityReturned = line.quantityReturned + count
+    return { ...line, quantityReturned, returnedAt: quantityReturned === line.quantity ? at : line.returnedAt }
+  })
+  const allBack = lines.every((line) => line.quantityReturned === line.quantity)
+  return { ...loan, lines, returnedAt: allBack ? (loan.returnedAt ?? at) : undefined, updatedAt: at }
+}
 
 /**
  * Moves the expected return date. The first agreed date is remembered in
