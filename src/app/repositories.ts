@@ -1,4 +1,5 @@
 import { LocalLoanRepository, type LoanRepository } from "@/features/loans"
+import { LocalBackupRepository, type BackupRepository } from "@/features/backup"
 import { LocalBorrowerRepository, type BorrowerRepository } from "@/features/borrowers"
 import { LocalSettingsRepository, type SettingsRepository } from "@/features/settings"
 import { WaMeChannel, type ReminderChannel } from "@/features/reminders"
@@ -12,6 +13,7 @@ import { LocalDocumentStore, STORAGE_KEY } from "@/shared/schema/local-document"
 export interface Repositories {
   loans: LoanRepository
   borrowers: BorrowerRepository
+  backup: BackupRepository
   settings: SettingsRepository
   reminderChannel: ReminderChannel
   store: LocalDocumentStore
@@ -29,6 +31,7 @@ export function createRepositories(): Repositories {
     store,
     loans: new LocalLoanRepository(store),
     borrowers: new LocalBorrowerRepository(store),
+    backup: new LocalBackupRepository(store, window.localStorage),
     settings: new LocalSettingsRepository(store),
     reminderChannel: new WaMeChannel(),
   }
