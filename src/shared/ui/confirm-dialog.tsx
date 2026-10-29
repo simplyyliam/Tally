@@ -1,6 +1,14 @@
 import type { ReactNode } from "react"
-import { Button } from "./button"
-import { Dialog } from "./dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 interface ConfirmDialogProps {
   open: boolean
@@ -13,33 +21,30 @@ interface ConfirmDialogProps {
   children?: ReactNode
 }
 
-/** Asks before anything that can't be undone. The safe choice (Cancel) is always first. */
+/** Asks before anything that can't be undone, using the shadcn AlertDialog. Cancel is the safe default. */
 export function ConfirmDialog({ open, onOpenChange, title, description, confirmLabel, tone = "danger", onConfirm, children }: ConfirmDialogProps) {
   return (
-    <Dialog
-      open={open}
-      onOpenChange={onOpenChange}
-      title={title}
-      description={description}
-      size="sm"
-      footer={
-        <>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button
-            variant={tone === "danger" ? "danger" : "primary"}
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      <AlertDialogContent className="rounded-xl">
+        <AlertDialogHeader>
+          <AlertDialogTitle>{title}</AlertDialogTitle>
+          <AlertDialogDescription>{description}</AlertDialogDescription>
+        </AlertDialogHeader>
+        {children}
+        <AlertDialogFooter>
+          <AlertDialogCancel className="rounded-lg">Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            variant={tone === "danger" ? "destructive" : "default"}
+            className="rounded-lg"
             onClick={() => {
               onConfirm()
               onOpenChange(false)
             }}
           >
             {confirmLabel}
-          </Button>
-        </>
-      }
-    >
-      {children}
-    </Dialog>
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   )
 }

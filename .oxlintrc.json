@@ -33,6 +33,16 @@
     },
     {
       "files": [
+        "src/components/ui/**",
+        "src/hooks/**"
+      ],
+      "rules": {
+        "react/set-state-in-effect": "off",
+        "react/only-export-components": "off"
+      }
+    },
+    {
+      "files": [
         "src/shared/**"
       ],
       "rules": {

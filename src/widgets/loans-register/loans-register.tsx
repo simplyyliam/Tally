@@ -76,6 +76,7 @@ export function LoansRegister() {
       <PageHeader
         icon={<List />}
         title="Loans"
+        breadcrumbs={[{ label: "Dashboard", to: "/" }]}
         subtitle={`${counts.out} out · ${counts.returned} returned`}
         actions={
           <>
@@ -113,7 +114,7 @@ export function LoansRegister() {
             aria-label="Search loans"
           />
           {tab !== "returned" && (
-            <Select aria-label="Sort loans" value={sort} onChange={(event) => setSort(event.target.value as LoanSort)} className="w-auto rounded-xl">
+            <Select aria-label="Sort loans" value={sort} onChange={(event) => setSort(event.target.value as LoanSort)} className="[&>select]:rounded-xl">
               {LOAN_SORTS.map((option) => (
                 <option key={option.id} value={option.id}>
                   {option.label}

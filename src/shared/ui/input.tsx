@@ -1,43 +1,35 @@
 import type { ComponentProps } from "react"
+import { Input as ShadcnInput } from "@/components/ui/input"
+import { NativeSelect } from "@/components/ui/native-select"
+import { Textarea as ShadcnTextarea } from "@/components/ui/textarea"
 import { cn } from "@/shared/lib/cn"
 
-export const controlClass = cn(
-  "w-full min-w-0 rounded-lg border border-border-strong bg-background px-3 text-sm text-foreground shadow-card",
-  "placeholder:text-faint outline-none transition-[border-color,box-shadow] duration-150",
-  "hover:border-ring/60 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/20",
-  "aria-invalid:border-red-text/50 aria-invalid:ring-3 aria-invalid:ring-red-text/10",
-  "disabled:cursor-not-allowed disabled:opacity-50",
-)
+/**
+ * shadcn Input, Textarea and NativeSelect with Tally's calmer corners and a
+ * hairline border, applied through className so the shadcn files stay as-is.
+ */
+export const controlClass = "rounded-lg border-border-strong bg-background shadow-card dark:bg-input/30"
 
 export function Input({ className, ...props }: ComponentProps<"input">) {
-  return <input data-slot="input" className={cn(controlClass, "h-10 md:h-9", className)} {...props} />
+  return <ShadcnInput className={cn(controlClass, "h-10 md:h-9", className)} {...props} />
 }
 
 export function Textarea({ className, ...props }: ComponentProps<"textarea">) {
-  return <textarea data-slot="textarea" className={cn(controlClass, "min-h-20 py-2 leading-relaxed", className)} {...props} />
+  return <ShadcnTextarea className={cn(controlClass, "min-h-20 py-2", className)} {...props} />
 }
 
-/** A native select styled like the filter pills in the references; native keeps it reliable on phones. */
-export function Select({ className, children, ...props }: ComponentProps<"select">) {
+/**
+ * Native on purpose: it opens the phone's own picker, the fastest on a small
+ * screen. shadcn puts className on the wrapper, so the select is styled via [&>select].
+ */
+export function Select({ className, ...props }: ComponentProps<typeof NativeSelect>) {
   return (
-    <div className="relative">
-      <select
-        data-slot="select"
-        className={cn(controlClass, "h-10 cursor-pointer appearance-none pr-8 md:h-9", className)}
-        {...props}
-      >
-        {children}
-      </select>
-      <svg
-        aria-hidden
-        viewBox="0 0 16 16"
-        className="pointer-events-none absolute top-1/2 right-2.5 size-3.5 -translate-y-1/2 text-faint"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.6"
-      >
-        <path d="m4 6 4 4 4-4" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    </div>
+    <NativeSelect
+      className={cn(
+        "[&>select]:h-10 [&>select]:rounded-lg [&>select]:border-border-strong [&>select]:bg-background [&>select]:shadow-card md:[&>select]:h-9",
+        className,
+      )}
+      {...props}
+    />
   )
 }
