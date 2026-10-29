@@ -1,4 +1,4 @@
-import { Home, List, Settings, type LucideIcon } from "lucide-react"
+import { Home, List, Settings, Users, type LucideIcon } from "lucide-react"
 
 export interface NavItem {
   to: string
@@ -11,6 +11,7 @@ export interface NavItem {
 export const MAIN_NAV: ReadonlyArray<NavItem> = [
   { to: "/", label: "Dashboard", icon: Home },
   { to: "/loans", label: "Loans", icon: List, badge: "overdue" },
+  { to: "/borrowers", label: "Borrowers", icon: Users },
 ]
 
 export const DATA_NAV: ReadonlyArray<NavItem> = [{ to: "/settings", label: "Settings", icon: Settings }]

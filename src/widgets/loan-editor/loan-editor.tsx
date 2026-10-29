@@ -12,7 +12,9 @@ import {
   type Loan,
   type LoanDraft,
 } from "@/features/loans"
+import { suggestBorrowers, useBorrowers } from "@/features/borrowers"
 import { useSettings } from "@/features/settings"
+import { formatPhone } from "@/shared/lib/phone"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
@@ -31,6 +33,7 @@ export function LoanEditor() {
   const { data: loans = [] } = useLoans()
   const repository = useLoanRepository()
   const settings = useSettings()
+  const { borrowers } = useBorrowers()
   // Bumping this remounts the form with fresh, empty fields.
   const [formKey, setFormKey] = useState(0)
   const [lastSaved, setLastSaved] = useState<Loan | null>(null)
@@ -94,7 +97,21 @@ export function LoanEditor() {
               </motion.div>
             )}
           </AnimatePresence>
-          {open && <LoanForm key={editing ? editing.id : formKey} formId={FORM_ID} initial={initial} onSubmit={handleSubmit} />}
+          {open && (
+            <LoanForm
+              key={editing ? editing.id : formKey}
+              formId={FORM_ID}
+              initial={initial}
+              onSubmit={handleSubmit}
+              findBorrowers={(query) =>
+                suggestBorrowers(borrowers, query).map((borrower) => ({
+                  key: borrower.key,
+                  details: borrower.details,
+                  detail: borrower.details.department || formatPhone(borrower.details.cellphone),
+                }))
+              }
+            />
+          )}
         </div>
         <DialogFooter className="border-t p-4 sm:px-6">
           <Button variant="outline" onClick={handleClose}>

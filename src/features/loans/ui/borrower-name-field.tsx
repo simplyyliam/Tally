@@ -1,4 +1,4 @@
-import { Combobox, ComboboxContent, ComboboxInput, ComboboxItem, ComboboxLabel, ComboboxList } from "@/components/ui/combobox"
+import { Combobox, ComboboxContent, ComboboxGroup, ComboboxInput, ComboboxItem, ComboboxLabel, ComboboxList } from "@/components/ui/combobox"
 import type { BorrowerSuggestion } from "./loan-form"
 
 interface BorrowerNameFieldProps {
@@ -42,13 +42,15 @@ export function BorrowerNameField({ id, value, onValueChange, suggestions, onPic
       {suggestions.length > 0 && (
         <ComboboxContent>
           <ComboboxList>
-            <ComboboxLabel>Past borrowers</ComboboxLabel>
+            <ComboboxGroup>
+              <ComboboxLabel>Past borrowers</ComboboxLabel>
             {suggestions.map((suggestion) => (
               <ComboboxItem key={suggestion.key} value={suggestion}>
                 <span className="min-w-0 flex-1 truncate">{suggestion.details.name}</span>
                 {suggestion.detail && <span className="shrink-0 truncate text-xs font-normal text-muted-foreground">{suggestion.detail}</span>}
               </ComboboxItem>
             ))}
+            </ComboboxGroup>
           </ComboboxList>
         </ComboboxContent>
       )}

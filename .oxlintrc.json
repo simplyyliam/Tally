@@ -211,6 +211,14 @@
           "document"
         ]
       }
+    },
+    {
+      "files": [
+        "src/**/*.test.ts"
+      ],
+      "rules": {
+        "no-restricted-imports": "off"
+      }
     }
   ],
   "ignorePatterns": [
