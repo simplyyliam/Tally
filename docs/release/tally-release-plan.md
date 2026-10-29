@@ -8,7 +8,7 @@ Ship **v1.0 "Trusted Register"** first: the 35 features you already have, harden
 
 Everything after that is staged into four follow-up releases, each one adding a single big idea: going online with staff accounts and a live Google Sheet (v1.1), automatic WhatsApp reminders (v1.2), items with QR codes (v1.3), and reservations, sign-off and reports (v1.4). Nine features are parked on purpose.
 
-Every release section below has a ready-to-paste `/goal` prompt and a branch name.
+Every release section below has a full build spec and a short `/goal` prompt that points the agent to it. **Keep this file in the repo at `docs/release-plan.md`** so the agent can read it.
 
 ## Product philosophy
 
@@ -77,7 +77,7 @@ These rules are baked into every `/goal` prompt below, so each prompt can be pas
 3. **One release, one branch.** `release/vX.Y-<name>`, merged to `main` by pull request, then tagged.
 4. **Conventional Commits.** `feat:`, `fix:`, `chore:`, `refactor:`, `test:`, `docs:`, with short bullet-point bodies.
 5. **Green before done.** Lint, type-check, tests and production build all pass. `CHANGELOG.md` and the `package.json` version are updated.
-6. **Phone-first.** Every new flow is checked at 375 px wide; issue and return stay one tap from the dashboard.
+6. **Desktop and phone.** Every new flow works on a desktop (1280 px+) and a phone (375 px); issue and return stay one click or tap from the dashboard.
 7. **Short report.** Each run ends with a STATUS / CHECKS / NEEDS YOUR DECISION block, so you only paste output back when something failed or needs a call.
 
 ## Architecture: built to grow, readable without AI
@@ -127,7 +127,7 @@ So a person can follow it without AI:
 
 ## v1.0 — Trusted Register (first launch)
 
-**Goal:** your dad uses it every day on his phone instead of paper, and never loses data. Branch `release/v1.0-trusted-register`, tag `v1.0.0`.
+**Goal:** your dad uses it every day on his computer or phone instead of paper, and never loses data. Branch `release/v1.0-trusted-register`, tag `v1.0.0`.
 
 **Done when:**
 
@@ -135,28 +135,31 @@ So a person can follow it without AI:
 - [ ] Returning part of a loan (2 of 3 items) works and shows what's still out
 - [ ] Typing a borrower's name suggests past borrowers and fills their phone, department and work number
 - [ ] Every loan has a reference like `LN-2026-0001` and timestamps for issue, extend and return
-- [ ] Backup downloads a file; Restore on another phone brings everything back
+- [ ] Backup downloads a file; Restore on another device brings everything back
 - [ ] An Excel/CSV register can be imported with a column-mapping preview
 - [ ] WhatsApp button is disabled for borrowers who opted out
 - [ ] Everything keeps working with the internet off while the page is open
+- [ ] Every screen works on a desktop (1280px+) and a phone (375px)
 - [ ] Overdue borrowers' names show in red on the list and dashboard
 - [ ] A Returned tab lists returned loans with the borrower's name struck through and status "Returned"
 - [ ] Saving a complete loan clears the form, ready for the next borrower
 - [ ] Extending a loan edits its return date and shows the extension indicator
 - [ ] A "Due tomorrow" list offers a one-tap WhatsApp message with the loan reference, each item with its quantity, and the return date
 
-```text
-/goal Ship v1.0 "Trusted Register" of Tally, the loan register web app, on branch release/v1.0-trusted-register.
+### Build spec
 
-CONTEXT
+**Context**
+
 - This is an existing browser-based loan register (features: register/edit/delete loans, quantity, borrower name, cellphone, WhatsApp, start + expected return date, department, employee number, issuing staff, notes, mark returned, extend dates, auto status incl. overdue/due-today/returned, overdue-day count, extension indicator, dashboard, search/filter/sort, WhatsApp reminder via wa.me link, CSV export, sample data, local browser storage, mobile-friendly).
 - First, inspect the repo and summarise the stack, folder structure and how data is stored. Keep the existing stack. Do not add a backend, login or paid service in this release.
 
-DESIGN
+**Design**
+
 - Before touching UI, read everything in docs/design/ (reference images + notes) and match its layout, spacing, typography, colours and components. If a screen has no reference, reuse the closest existing pattern and list the screen under NEEDS YOUR DECISION. Do not invent a new visual style.
 - Responsive for desktop and phone: on desktop (1280px+) show a wide, scannable loan table with keyboard-friendly entry (Tab through the form, Enter saves, a shortcut opens "New loan"); on phone (375px) switch the table to stacked cards and keep Issue, Return and the WhatsApp button as large tap targets. Issue and Return must be one click or tap from the dashboard on both.
 
-BUILD
+**Build**
+
 0. Architecture foundation (do this first, in its own commits): restructure into src/app, src/features/<feature>/{domain,data,ui,index.ts} and src/shared/{ui,lib,schema}. Move status/overdue/date rules into pure, unit-tested domain functions (no React, no storage). Put all storage behind repository interfaces (LoanRepository, BorrowerRepository) with a local implementation chosen in one place in src/app. Validate stored, imported and restored data with Zod schemas. Send reminders through a ReminderChannel interface (wa.me implementation for now). Enforce boundaries with ESLint (features import each other only via index.ts; domain cannot import React or storage). Write README.md (run, test, structure), docs/architecture.md (the structure and rules in plain words) and docs/adr/0001-feature-folders-and-repositories.md. Prefer plain, descriptive code over clever abstractions; files under ~250 lines; comments explain why. Behaviour must be unchanged after this step, proven by tests.
 1. Data safety: add a schemaVersion to stored data and a migration that upgrades existing records on load without losing any. Add a test that loads pre-v1.0 data.
 2. Loan references + timestamps: every loan gets a unique, readable reference (LN-YYYY-NNNN). Store createdAt, issuedAt, extendedAt[] and returnedAt as ISO timestamps; show them on the loan detail.
@@ -167,16 +170,26 @@ BUILD
 7. WhatsApp consent: per-borrower flag "OK to contact on WhatsApp" (default on, with a one-line POPIA note at the point of capture). If off, hide/disable the WhatsApp reminder button. Let the reminder message template be edited in Settings with placeholders {name}, {items}, {dueDate}, {daysOverdue}, {reference}.
 8. Data retention: in Settings, "Delete returned loans older than N months" with a confirmation that shows how many records will go.
 9. Activity log (local): record create, edit, extend, return and delete with timestamp and issuing staff name; show it on each loan.
-10. No PWA or service worker in this release (it runs on a desktop). Keep the downloadable version working, and make sure every feature works with the internet off while the page is open.
+10. No PWA or service worker in this release (used in a browser on desktop and phone). Keep the downloadable version working, and make sure every feature works with the internet off while the page is open.
 11. Sample data: move to a "Load demo data" button in Settings with a matching "Clear demo data"; never load it automatically for real users.
 12. Your dad's workflow (must match exactly): overdue borrowers' names render red; a Returned tab lists returned loans with the borrower's name struck through and status "Returned"; saving a complete loan resets the form for the next borrower; extending a loan edits its expected return date and shows the extension indicator; a "Due tomorrow" dashboard list offers a one-tap wa.me message containing the loan reference, every item with its quantity, and the return date (automatic sending arrives in v1.2).
 
-QUALITY
+**Quality**
+
 - Unit tests for status calculation, overdue days, partial returns, migration, import parsing and backup round-trip.
 - Lint, type-check, tests and production build must pass.
 - Update CHANGELOG.md (v1.0.0 section) and set package.json version to 1.0.0.
 - Commit in small Conventional Commits (feat:, fix:, refactor:, test:, docs:, chore:) with short bullet-point bodies.
 - Do not merge or tag; stop with the branch ready for a PR.
+
+### `/goal` prompt
+
+```text
+/goal Ship v1.0 "Trusted Register" of Tally on branch release/v1.0-trusted-register.
+
+Read docs/release-plan.md before writing code. Follow "Rules for every release" and "Architecture: built to grow, readable without AI", then build everything in the "v1.0 — Trusted Register (first launch)" section: every numbered Build step, every Quality item and any "Done when" items. UI must match docs/design/. If the plan and the code disagree, or a step is unclear, do the safe thing and list it under NEEDS YOUR DECISION.
+
+Do not merge, tag or deploy; stop with the branch ready for a PR.
 
 END YOUR RUN WITH EXACTLY:
 STATUS: done | blocked (one line why)
@@ -188,26 +201,29 @@ NEEDS YOUR DECISION: bullet list, or "none"
 
 **Goal:** several staff on several devices see the same register, every action is signed by a logged-in person, and other organisations can sign up for their own private register. Every loan also appears in a live Google Sheet. Branch `release/v1.1-online-sheets`, tag `v1.1.0`.
 
-**Decision before you start:** the prompt assumes **Supabase** (Postgres, auth, row-level security, scheduled jobs and backups in one free-tier service), which suits a solo developer and is reused by v1.2's reminder scheduler. If you'd rather use your Express + Prisma setup, change the BACKEND lines first.
+**Decision before you start:** the spec assumes **Supabase** (Postgres, auth, row-level security, scheduled jobs and backups in one free-tier service), which suits a solo developer and is reused by v1.2's reminder scheduler. If you'd rather use your Express + Prisma setup, change the Backend part of the spec first.
 
-```text
-/goal Ship v1.1 "Online, Shared & Google Sheets" of Tally on branch release/v1.1-online-sheets, building on v1.0.
+### Build spec
 
-CONTEXT
+**Context**
+
 - v1.0 is local-first (browser storage, migrations, loans with line items, borrowers, backup JSON, repository interfaces). This release adds a shared online database while keeping offline use.
 - Inspect the repo first and summarise the data layer. Follow docs/architecture.md: add Supabase implementations of the existing repository interfaces and switch them in src/app. Domain and UI code should not need changes; if any must change, explain why under NEEDS YOUR DECISION. Add an ADR (why Supabase) and update docs/architecture.md and README.md.
 
-BACKEND
+**Backend**
+
 - Use Supabase: Postgres tables for organisations, memberships, borrowers, loans, loan_lines, activity_log, sheet_links; Supabase Auth (email + magic link; password optional).
 - Multi-tenant: every row has organisation_id. Enforce isolation with Row Level Security policies, and add tests that prove a user in org A cannot read or write org B.
 - Roles per organisation: admin (manage staff, settings, delete), staff (issue, return, extend, edit), viewer (read only). Enforce in RLS, not just the UI.
 - Keep secrets in env vars; commit a .env.example only.
 
-DESIGN
-- Read everything in docs/design/ before building UI (sign in, organisation setup, staff management, admin dashboard, Google Sheet connection) and match it. Screens without a reference: reuse the closest existing pattern and list them under NEEDS YOUR DECISION. No new visual style.
-- Phone-first at 375px.
+**Design**
 
-BUILD
+- Read everything in docs/design/ before building UI (sign in, organisation setup, staff management, admin dashboard, Google Sheet connection) and match it. Screens without a reference: reuse the closest existing pattern and list them under NEEDS YOUR DECISION. No new visual style.
+- Responsive: check every new screen on desktop (1280px+) and phone (375px).
+
+**Build**
+
 1. Onboarding: sign up -> create organisation -> invite staff by email with a role. Admin page to change roles and remove staff.
 2. Move-to-cloud: on first sign-in, offer to upload the existing local data (or a v1.0 backup file) into the organisation, with a summary and confirmation. Never delete local data until upload is verified.
 3. Issuing staff = the signed-in user automatically (keep a free-text override for "on behalf of").
@@ -218,10 +234,20 @@ BUILD
 8. Live Google Sheet (one-way mirror): an admin connects a Google Sheet (share it with the app's Google service account email, paste the sheet URL). A database webhook runs an Edge Function on every loan insert, update and return that upserts one row per loan line, keyed by loan reference + line, with all loan fields and status. New loans append; edits and returns update their row. Edits made in the sheet are not read back; say so in the UI. Failed syncs retry and appear in an admin "Sheet sync" status with a "Resync all" button.
 9. Terms and privacy: add a short Terms page and a privacy notice explaining that the app processes borrowers' details on each organisation's behalf (POPIA), shown at sign-up and linked in the footer.
 
-QUALITY
+**Quality**
+
 - Tests: RLS isolation, role permissions, offline queue replay, local-to-cloud upload, sheet row mapping and upsert (mock the Google API; never call it from CI).
 - Lint, type-check, tests and build pass. CHANGELOG.md v1.1.0; package.json 1.1.0.
 - Conventional Commits with short bullet bodies. Stop with the branch ready for a PR; do not merge, tag or deploy.
+
+### `/goal` prompt
+
+```text
+/goal Ship v1.1 "Online, Shared & Google Sheets" of Tally on branch release/v1.1-online-sheets.
+
+Read docs/release-plan.md before writing code. Follow "Rules for every release" and "Architecture: built to grow, readable without AI", then build everything in the "v1.1 — Online, Shared & Google Sheets" section: every numbered Build step, every Quality item and any "Done when" items. UI must match docs/design/. If the plan and the code disagree, or a step is unclear, do the safe thing and list it under NEEDS YOUR DECISION.
+
+Do not merge, tag or deploy; stop with the branch ready for a PR.
 
 END YOUR RUN WITH EXACTLY:
 STATUS: done | blocked (one line why)
@@ -245,17 +271,19 @@ NEEDS YOUR DECISION: bullet list, or "none"
 
 Reminders go out from **one app-owned number** for every organisation, so your dad (and anyone else) only ticks "Send reminders automatically". The Cloud API itself is free; you pay only per message. Unverified accounts can reach 250 different people a day across all organisations. ([Cloud API is free](https://www.go4whatsup.com/guides/whatsapp-cloud-api/), [messaging limits](https://guides.clickatell.com/whatsapp-channel/getting-started/get-business-verified)) The free `wa.me` button stays as a fallback.
 
-```text
-/goal Ship v1.2 "Automatic Reminders" of Tally on branch release/v1.2-auto-reminders, building on v1.1 (Supabase, organisations, roles, audit log, Google Sheet mirror).
+### Build spec
 
-CONTEXT
+**Context**
+
 - Inspect the repo first and summarise how loans, borrowers (incl. WhatsApp consent) and settings are stored.
 - Reminders are sent from ONE app-owned WhatsApp Cloud API number for all organisations (platform credentials in server-side env vars, never in the browser). Organisations only opt in and set their schedule. Every template names the organisation. Keep the manual wa.me button as a fallback.
 
-DESIGN
+**Design**
+
 - Read everything in docs/design/ before building UI (reminder settings, message log, loan reminder timeline) and match it. Screens without a reference: reuse the closest existing pattern and list them under NEEDS YOUR DECISION. No new visual style.
 
-BUILD
+**Build**
+
 0. Follow docs/architecture.md: WhatsApp Cloud API and email are new ReminderChannel implementations in src/features/reminders; schedule rules are pure, unit-tested domain functions. Add an ADR and update docs/architecture.md and README.md.
 1. Settings (admin): turn "Send reminders automatically" on or off and choose the schedule: N days before due (default 1), on the due day, overdue every N days (default 2) up to a max count (default 3). Default loan period and return policy text also live here. Template names per reminder type live in platform config, not per organisation. The pre-due reminder includes the organisation name, loan reference, every item with its quantity, and the return date.
 2. Scheduler: a Supabase scheduled job (pg_cron) calling an Edge Function every 15 minutes. It finds due reminders, sends via the WhatsApp Cloud API, and records each send in a reminders table (loan, type, scheduled_for, sent_at, status, error). Send only between 08:00 and 18:00 Africa/Johannesburg; never send twice for the same loan + type + day (idempotency key). Respect the platform-wide daily limit (250 unique recipients while unverified): queue overflow for the next window and show it in the admin view.
@@ -265,10 +293,20 @@ BUILD
 6. Email fallback: if the borrower has an email and no WhatsApp consent, send the same reminder by email (Resend or similar), using the same scheduler and log.
 7. Templates: show the approved template text with placeholder preview; keep body text editable only for the email channel.
 
-QUALITY
+**Quality**
+
 - Tests: schedule calculation (incl. weekends and the time window), idempotency, auto-cancel on return/extend/opt-out, webhook signature verification. Mock the WhatsApp API in tests; never call it from CI.
 - Lint, type-check, tests and build pass. CHANGELOG.md v1.2.0; package.json 1.2.0.
 - Conventional Commits with short bullet bodies. Stop with the branch ready for a PR; do not merge, tag or deploy.
+
+### `/goal` prompt
+
+```text
+/goal Ship v1.2 "Automatic Reminders" of Tally on branch release/v1.2-auto-reminders.
+
+Read docs/release-plan.md before writing code. Follow "Rules for every release" and "Architecture: built to grow, readable without AI", then build everything in the "v1.2 — Automatic Reminders" section: every numbered Build step, every Quality item and any "Done when" items. UI must match docs/design/. If the plan and the code disagree, or a step is unclear, do the safe thing and list it under NEEDS YOUR DECISION.
+
+Do not merge, tag or deploy; stop with the branch ready for a PR.
 
 END YOUR RUN WITH EXACTLY:
 STATUS: done | blocked (one line why)
@@ -282,18 +320,20 @@ NEEDS YOUR DECISION: bullet list, or "none"
 
 **Done when:** an item catalogue exists with asset IDs, printable QR labels, scan-to-issue and scan-to-return, availability per item, and condition captured at issue and return.
 
-```text
-/goal Ship v1.3 "Items & QR" of Tally on branch release/v1.3-items-qr, building on v1.2.
+### Build spec
 
-CONTEXT
+**Context**
+
 - The app is online (Supabase, organisations, roles, offline sync, audit log, Google Sheet mirror, automatic reminders). Add items through the existing repository pattern; store photos in Supabase Storage with per-organisation access.
 - Inspect the repo first and summarise how loans, line items and migrations work today.
 
-DESIGN
-- Read everything in docs/design/ before building UI and match it (layout, spacing, type, colours, components). Screens without a reference: reuse the closest existing pattern and list them under NEEDS YOUR DECISION. No new visual style.
-- Phone-first at 375px. The Scan button is reachable in one tap from the dashboard.
+**Design**
 
-BUILD
+- Read everything in docs/design/ before building UI and match it (layout, spacing, type, colours, components). Screens without a reference: reuse the closest existing pattern and list them under NEEDS YOUR DECISION. No new visual style.
+- Responsive: check desktop (1280px+) and phone (375px). The Scan button is one click or tap from the dashboard.
+
+**Build**
+
 0. Follow docs/architecture.md: add this as src/features/items with its own domain, data (ItemRepository) and ui, exposed via index.ts. Do not reach into other features' internals; extend through their index.ts. Add an ADR for any new pattern and update docs/architecture.md and README.md.
 1. Item catalogue: items have assetId (auto, e.g. ITM-0001, editable), name, category, location, serial number (optional), replacement value (ZAR, optional), photo (optional, compressed client-side to under 200 KB), quantity owned (for non-serialised items like cables), status (available | on loan | damaged | missing | retired) and notes. CRUD screens with search and category filter; category and location lists editable in Settings.
 2. Link loans to items: a loan line can reference a catalogue item (or stay free-text for backwards compatibility). Availability = owned minus out on loan; block issuing more than is available, with a clear message.
@@ -303,10 +343,20 @@ BUILD
 6. Condition: capture condition (good | fair | damaged) and an optional note/photo at issue and at return. A return marked damaged or a "report missing" action updates item status and appears in a Damaged & Missing list on the dashboard.
 7. Include items, photos and conditions in exports (separate items.csv) and add asset ID and condition columns to the Google Sheet mirror.
 
-QUALITY
+**Quality**
+
 - Tests: availability maths, linking existing loans to new items, export with items, QR payload encode/decode.
 - Lint, type-check, tests and build pass. CHANGELOG.md v1.3.0 section; package.json 1.3.0.
 - Conventional Commits with short bullet bodies. Stop with the branch ready for a PR; do not merge or tag.
+
+### `/goal` prompt
+
+```text
+/goal Ship v1.3 "Items & QR" of Tally on branch release/v1.3-items-qr.
+
+Read docs/release-plan.md before writing code. Follow "Rules for every release" and "Architecture: built to grow, readable without AI", then build everything in the "v1.3 — Items & QR" section: every numbered Build step, every Quality item and any "Done when" items. UI must match docs/design/. If the plan and the code disagree, or a step is unclear, do the safe thing and list it under NEEDS YOUR DECISION.
+
+Do not merge, tag or deploy; stop with the branch ready for a PR.
 
 END YOUR RUN WITH EXACTLY:
 STATUS: done | blocked (one line why)
@@ -318,34 +368,46 @@ NEEDS YOUR DECISION: bullet list, or "none"
 
 **Goal:** items can be booked ahead without double-booking, borrowers sign for what they take and return, and managers get monthly reports without asking. Branch `release/v1.4-reserve-signoff-reports`, tag `v1.4.0`.
 
-```text
-/goal Ship v1.4 "Reservations, Sign-off & Reports" of Tally on branch release/v1.4-reserve-signoff-reports, building on v1.3 (Supabase, organisations, roles, items, scheduler, reminders).
+### Build spec
 
-CONTEXT
+**Context**
+
 - Inspect the repo first and summarise items, loans, the scheduler and the audit log.
 
-DESIGN
-- Read everything in docs/design/ before building UI (availability calendar, reservation form, signature pad, reports) and match it. Screens without a reference: reuse the closest existing pattern and list them under NEEDS YOUR DECISION. No new visual style.
-- Phone-first at 375px; the signature pad must work with a finger.
+**Design**
 
-BUILD
+- Read everything in docs/design/ before building UI (availability calendar, reservation form, signature pad, reports) and match it. Screens without a reference: reuse the closest existing pattern and list them under NEEDS YOUR DECISION. No new visual style.
+- Responsive: check desktop (1280px+) and phone (375px); the signature pad must work with a finger on a phone or tablet.
+
+**Build**
+
 0. Follow docs/architecture.md: add src/features/reservations and src/features/reports with their own domain, data and ui; double-booking and report rules are pure, unit-tested domain functions backed by database constraints. Add an ADR for any new pattern and update docs/architecture.md and README.md.
 1. Reservations: book one or more items for a date range for a borrower. Prevent double-booking in the database (exclusion constraint on item + date range, quantity-aware for non-serialised items), not just in the UI. Converting a reservation into a loan is one tap on the day; no-shows auto-cancel after a configurable grace period.
 2. Availability calendar: per item and per category, week and month views, showing loans, reservations and items out for damage.
 3. Digital sign-off: at issue and at return, show the items, quantities, condition and return-policy text, capture the borrower's finger signature (and the staff member's name), timestamp it, and store the signature image privately. Generate a simple PDF receipt per loan that can be shared via WhatsApp.
 4. Reports (admin, filterable by date range and department; each exportable to CSV/XLSX):
-   - Overdue loans
-   - Missing and damaged items, with replacement value totals
-   - Most borrowed items
-   - Monthly loan activity (issued, returned, overdue)
-   - Item utilisation (days on loan / days owned)
-   - Department summary
+    - Overdue loans
+    - Missing and damaged items, with replacement value totals
+    - Most borrowed items
+    - Monthly loan activity (issued, returned, overdue)
+    - Item utilisation (days on loan / days owned)
+    - Department summary
 5. Scheduled reports: admins choose which reports are emailed monthly (1st of the month, 08:00 Africa/Johannesburg) using the v1.2 scheduler.
 
-QUALITY
+**Quality**
+
 - Tests: double-booking constraint (incl. quantities), reservation-to-loan conversion, report queries against seeded data, signature storage permissions per organisation.
 - Lint, type-check, tests and build pass. CHANGELOG.md v1.4.0; package.json 1.4.0.
 - Conventional Commits with short bullet bodies. Stop with the branch ready for a PR; do not merge, tag or deploy.
+
+### `/goal` prompt
+
+```text
+/goal Ship v1.4 "Reservations, Sign-off & Reports" of Tally on branch release/v1.4-reserve-signoff-reports.
+
+Read docs/release-plan.md before writing code. Follow "Rules for every release" and "Architecture: built to grow, readable without AI", then build everything in the "v1.4 — Reservations, Sign-off & Reports" section: every numbered Build step, every Quality item and any "Done when" items. UI must match docs/design/. If the plan and the code disagree, or a step is unclear, do the safe thing and list it under NEEDS YOUR DECISION.
+
+Do not merge, tag or deploy; stop with the branch ready for a PR.
 
 END YOUR RUN WITH EXACTLY:
 STATUS: done | blocked (one line why)
