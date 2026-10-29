@@ -10,7 +10,7 @@ export function reminderValuesForLoan(loan: Loan, today: IsoDate): TemplateValue
     items: lines.map((line) => `- ${line.quantity - line.quantityReturned} × ${line.description}`).join("\n"),
     dueDate: formatDate(loan.expectedReturnDate),
     daysOverdue: String(overdueDays(loan, today)),
-    reference: "",
+    reference: loan.reference,
   }
 }
 

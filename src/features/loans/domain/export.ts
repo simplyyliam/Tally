@@ -7,6 +7,7 @@ import { STATUS_LABELS, lineStatus, overdueDays, remainingQuantity } from "./sta
  * of "3 cords and a projector" stays readable in a spreadsheet.
  */
 export const EXPORT_HEADERS = [
+  "Reference",
   "Borrower",
   "Cellphone",
   "WhatsApp",
@@ -24,6 +25,8 @@ export const EXPORT_HEADERS = [
   "Issued by",
   "Notes",
   "Created at",
+  "Issued at",
+  "Extended at",
   "Returned at",
 ] as const
 
@@ -32,6 +35,7 @@ export function loansToCsvRows(loans: ReadonlyArray<Loan>, today: IsoDate): stri
   for (const loan of loans) {
     for (const line of loan.lines) {
       rows.push([
+        loan.reference,
         loan.borrower.name,
         loan.borrower.cellphone,
         loan.borrower.whatsapp,
@@ -49,6 +53,8 @@ export function loansToCsvRows(loans: ReadonlyArray<Loan>, today: IsoDate): stri
         loan.issuedBy,
         loan.notes,
         loan.createdAt,
+        loan.issuedAt,
+        loan.extendedAt.join(" | "),
         loan.returnedAt ?? "",
       ])
     }

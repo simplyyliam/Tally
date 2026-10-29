@@ -83,6 +83,16 @@ describe("loading pre-v1.0 data", () => {
     expect(storage.dump()["tally.register.before-v1"]).toBe(original)
   })
 
+  it("numbers legacy loans oldest first and remembers the last number used", () => {
+    const storage = createMemoryStorage({ "tally-loans": JSON.stringify(preV1Loans) })
+    const store = new LocalDocumentStore(storage)
+    const loans = store.getSection("loans") as Array<Record<string, any>>
+    expect(loans.map((loan) => loan.reference)).toEqual(["LN-2026-0001", "LN-2026-0002"])
+    expect(store.getSection("loanReferenceCounters")).toEqual({ "2026": 2 })
+    expect(loans[0].issuedAt).toBe(loans[0].createdAt)
+    expect(loans[0].extendedAt).toEqual([])
+  })
+
   it("never drops a record it can't understand", () => {
     const { document } = prepareStoredDocument({ loans: ["garbage", 42] }, createMemoryStorage())
     expect(document.loans).toEqual(["garbage", 42])

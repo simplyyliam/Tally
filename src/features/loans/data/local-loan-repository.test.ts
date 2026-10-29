@@ -26,6 +26,19 @@ describe("local loan repository", () => {
     expect(await repository.list()).toEqual([created])
   })
 
+  it("gives each new loan the next reference for the year", async () => {
+    const { repository } = setup()
+    const [first, second] = await repository.createMany([draft, draft])
+    expect([first.reference, second.reference]).toEqual(["LN-2026-0001", "LN-2026-0002"])
+  })
+
+  it("does not reuse a deleted loan's reference", async () => {
+    const { repository } = setup()
+    const first = await repository.create(draft)
+    await repository.remove([first.id])
+    expect((await repository.create(draft)).reference).toBe("LN-2026-0002")
+  })
+
   it("survives a page reload because it writes to browser storage", async () => {
     const { storage, repository } = setup()
     await repository.create(draft)

@@ -12,9 +12,10 @@ export interface ChangeContext {
   createId: () => string
 }
 
-export function createLoan(draft: LoanDraft, context: ChangeContext): Loan {
+export function createLoan(draft: LoanDraft, context: ChangeContext & { reference: string }): Loan {
   return {
     id: context.createId(),
+    reference: context.reference,
     borrower: draft.borrower,
     lines: draft.lines.map((line) => ({
       id: context.createId(),
@@ -27,6 +28,8 @@ export function createLoan(draft: LoanDraft, context: ChangeContext): Loan {
     issuedBy: draft.issuedBy,
     notes: draft.notes,
     createdAt: context.at,
+    issuedAt: context.at,
+    extendedAt: [],
     updatedAt: context.at,
     isDemo: draft.isDemo,
   }
@@ -48,6 +51,8 @@ export function editLoan(loan: Loan, draft: LoanDraft, context: ChangeContext): 
     }
   })
   const dateChanged = draft.expectedReturnDate !== loan.expectedReturnDate
+  // Moving the date later from the edit form counts as an extension, same as the Extend button.
+  const extended = draft.expectedReturnDate > loan.expectedReturnDate
   return {
     ...loan,
     borrower: draft.borrower,
@@ -57,6 +62,7 @@ export function editLoan(loan: Loan, draft: LoanDraft, context: ChangeContext): 
     issuedBy: draft.issuedBy,
     notes: draft.notes,
     originalReturnDate: dateChanged ? (loan.originalReturnDate ?? loan.expectedReturnDate) : loan.originalReturnDate,
+    extendedAt: extended ? [...loan.extendedAt, context.at] : loan.extendedAt,
     updatedAt: context.at,
   }
 }
@@ -88,6 +94,7 @@ export function extendLoan(loan: Loan, newReturnDate: IsoDate, at: string): Loan
     ...loan,
     originalReturnDate: loan.originalReturnDate ?? loan.expectedReturnDate,
     expectedReturnDate: newReturnDate,
+    extendedAt: [...loan.extendedAt, at],
     updatedAt: at,
   }
 }

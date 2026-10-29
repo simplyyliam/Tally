@@ -20,10 +20,13 @@ describe("creating and editing loans", () => {
         notes: "",
         isDemo: false,
       },
-      context,
+      { ...context, reference: "LN-2026-0042" },
     )
     expect(loan.lines.map((line) => line.quantityReturned)).toEqual([0, 0])
+    expect(loan.reference).toBe("LN-2026-0042")
     expect(loan.createdAt).toBe(context.at)
+    expect(loan.issuedAt).toBe(context.at)
+    expect(loan.extendedAt).toEqual([])
   })
 
   it("editing keeps quantities already returned", () => {
@@ -52,6 +55,18 @@ describe("returning and extending", () => {
     const extended = extendLoan(makeLoan({ expectedReturnDate: "2026-10-27" }), "2026-11-03", context.at)
     expect(extended.expectedReturnDate).toBe("2026-11-03")
     expect(extended.originalReturnDate).toBe("2026-10-27")
+  })
+
+  it("every extension is time-stamped", () => {
+    const once = extendLoan(makeLoan(), "2026-11-03", "2026-10-29T10:00:00.000Z")
+    const twice = extendLoan(once, "2026-11-10", "2026-11-02T09:00:00.000Z")
+    expect(twice.extendedAt).toEqual(["2026-10-29T10:00:00.000Z", "2026-11-02T09:00:00.000Z"])
+  })
+
+  it("moving the return date later in the edit form also counts as an extension", () => {
+    const loan = makeLoan({ expectedReturnDate: "2026-10-27" })
+    const edited = editLoan(loan, { ...draftFromLoan(loan), expectedReturnDate: "2026-11-02" }, context)
+    expect(edited.extendedAt).toEqual([context.at])
   })
 
   it("extending twice keeps the very first agreed date", () => {
