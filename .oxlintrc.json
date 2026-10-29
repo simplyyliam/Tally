@@ -24,7 +24,8 @@
     {
       "files": [
         "src/**/*-context.tsx",
-        "src/shared/ui/**"
+        "src/shared/ui/**",
+        "src/components/ui/**"
       ],
       "rules": {
         "react/only-export-components": "off"
