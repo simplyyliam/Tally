@@ -36,7 +36,7 @@ describe("local loan repository", () => {
   it("puts a damaged record in quarantine instead of deleting it", async () => {
     const good = makeLoan({ id: "good" })
     const { store, repository } = setup({
-      "tally.register": JSON.stringify({ loans: [good, { id: "broken" }] }),
+      "tally.register": JSON.stringify({ schemaVersion: 1, loans: [good, { id: "broken" }] }),
     })
     expect((await repository.list()).map((loan) => loan.id)).toEqual(["good"])
     expect(store.getSection("quarantine")).toEqual([expect.objectContaining({ record: { id: "broken" } })])
