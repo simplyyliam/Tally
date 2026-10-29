@@ -1,5 +1,6 @@
 import { createId } from "@/shared/lib/ids"
-import { nowTimestamp } from "@/shared/lib/dates"
+import { nowTimestamp, yearOfTimestamp } from "@/shared/lib/dates"
+import { allocateReferences, type ReferenceCounters } from "@/shared/lib/loan-reference"
 import type { LocalDocumentStore } from "@/shared/schema/local-document"
 import { createLoan } from "../domain/changes"
 import { loanDraftSchema, loanSchema, type Loan, type LoanDraft } from "../domain/loan"
@@ -7,6 +8,7 @@ import type { LoanRepository } from "./loan-repository"
 
 const SECTION = "loans"
 const QUARANTINE = "quarantine"
+const COUNTERS = "loanReferenceCounters"
 
 /**
  * Loans kept in the browser via the shared document store.
@@ -39,8 +41,18 @@ export class LocalLoanRepository implements LoanRepository {
 
   async createMany(drafts: ReadonlyArray<LoanDraft>): Promise<Loan[]> {
     const at = this.clock()
-    const created = drafts.map((draft) => createLoan(loanDraftSchema.parse(draft), { at, createId }))
-    this.writeAll([...this.readAll(), ...created])
+    const existing = this.readAll()
+    const { references, counters } = allocateReferences(
+      yearOfTimestamp(at),
+      drafts.length,
+      existing.map((loan) => loan.reference),
+      this.readCounters(),
+    )
+    const created = drafts.map((draft, index) =>
+      createLoan(loanDraftSchema.parse(draft), { at, createId, reference: references[index] }),
+    )
+    // Loans and the counter are saved together so a number can never be handed out twice.
+    this.store.replace({ ...this.store.read(), [SECTION]: [...existing, ...created], [COUNTERS]: counters })
     return created
   }
 
@@ -86,6 +98,12 @@ export class LocalLoanRepository implements LoanRepository {
       })
     }
     return valid
+  }
+
+  private readCounters(): ReferenceCounters {
+    const raw = this.store.getSection(COUNTERS)
+    if (typeof raw !== "object" || raw === null) return {}
+    return Object.fromEntries(Object.entries(raw).filter(([, value]) => typeof value === "number")) as ReferenceCounters
   }
 
   private writeAll(loans: Loan[]): void {

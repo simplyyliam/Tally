@@ -1,5 +1,6 @@
 import { isRecord, type KeyValueStorage, type RegisterDocument } from "./storage-types"
 import { legacyRecordToLoan } from "./legacy-loan"
+import { allocateReferences, isLoanReference, type ReferenceCounters } from "@/shared/lib/loan-reference"
 
 /**
  * Storage versions. Every change to the stored shape bumps this number and
@@ -26,11 +27,12 @@ type Step = (document: RegisterDocument) => RegisterDocument
 
 /** STEPS[n] upgrades a version-n document to version n+1. */
 const STEPS: Record<number, Step> = {
-  0: (document) => ({
-    ...document,
-    loans: Array.isArray(document.loans) ? document.loans.map(upgradeLoanToV1) : [],
-    schemaVersion: 1,
-  }),
+  0: (document) => {
+    const loans = Array.isArray(document.loans) ? document.loans.map(upgradeLoanToV1) : []
+    const counters = isRecord(document.loanReferenceCounters) ? (document.loanReferenceCounters as ReferenceCounters) : {}
+    const numbered = numberLoans(loans, counters)
+    return { ...document, loans: numbered.loans, loanReferenceCounters: numbered.counters, schemaVersion: 1 }
+  },
 }
 
 /**
@@ -90,4 +92,42 @@ function readLegacyLoans(storage: KeyValueStorage): unknown[] | null {
 function upgradeLoanToV1(record: unknown): unknown {
   if (isRecord(record) && Array.isArray(record.lines) && isRecord(record.borrower)) return record
   return legacyRecordToLoan(record)
+}
+
+/**
+ * Gives every loan without a reference one (LN-YYYY-NNNN), oldest first, using
+ * the year the loan started. Also fills issuedAt and extendedAt for old records.
+ */
+function numberLoans(loans: unknown[], counters: ReferenceCounters): { loans: unknown[]; counters: ReferenceCounters } {
+  const existing = loans
+    .map((loan) => (isRecord(loan) && typeof loan.reference === "string" ? loan.reference : ""))
+    .filter(isLoanReference)
+  const order = loans
+    .map((loan, index) => ({ loan, index }))
+    .filter(({ loan }) => isRecord(loan) && !(typeof loan.reference === "string" && isLoanReference(loan.reference)))
+    .sort((a, b) => sortKey(a.loan).localeCompare(sortKey(b.loan)))
+
+  const result = [...loans]
+  let nextCounters = counters
+  for (const { loan, index } of order) {
+    const record = loan as Record<string, unknown>
+    const year = Number(sortKey(record).slice(0, 4)) || new Date().getFullYear()
+    const allocated = allocateReferences(year, 1, existing, nextCounters)
+    nextCounters = allocated.counters
+    existing.push(allocated.references[0])
+    result[index] = { ...record, reference: allocated.references[0] }
+  }
+  return {
+    loans: result.map((loan) =>
+      isRecord(loan)
+        ? { ...loan, issuedAt: loan.issuedAt ?? loan.createdAt, extendedAt: Array.isArray(loan.extendedAt) ? loan.extendedAt : [] }
+        : loan,
+    ),
+    counters: nextCounters,
+  }
+}
+
+function sortKey(loan: unknown): string {
+  if (!isRecord(loan)) return ""
+  return String(loan.startDate ?? loan.createdAt ?? "")
 }

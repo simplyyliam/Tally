@@ -1,5 +1,6 @@
 import { z } from "zod"
 import { isIsoDate } from "@/shared/lib/dates"
+import { isLoanReference } from "@/shared/lib/loan-reference"
 
 /**
  * The shape of a loan. One Zod schema per entity: everything read from
@@ -32,6 +33,8 @@ export const loanLineSchema = z
 
 export const loanSchema = z.object({
   id: z.string().min(1),
+  /** Readable, unique reference such as LN-2026-0001. */
+  reference: z.string().refine(isLoanReference, "Reference must look like LN-2026-0001"),
   borrower: borrowerDetailsSchema,
   lines: z.array(loanLineSchema).min(1, "A loan needs at least one item"),
   startDate: isoDate,
@@ -40,8 +43,14 @@ export const loanSchema = z.object({
   originalReturnDate: isoDate.optional(),
   issuedBy: z.string().trim().default(""),
   notes: z.string().default(""),
+  /** When the record was created in Tally. */
   createdAt: timestamp,
+  /** When the items were handed over (equal to createdAt unless back-dated by an import). */
+  issuedAt: timestamp,
+  /** Every time the return date was moved later. */
+  extendedAt: z.array(timestamp).default([]),
   updatedAt: timestamp,
+  /** When the last item came back. */
   returnedAt: timestamp.optional(),
   /** Demo records can be cleared in one go without touching real loans. */
   isDemo: z.boolean().default(false),

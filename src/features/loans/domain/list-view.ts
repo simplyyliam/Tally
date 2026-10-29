@@ -57,7 +57,7 @@ export function matchesSearch(loan: Loan, query: string): boolean {
       loan.borrower.employeeNumber,
       loan.issuedBy,
       loan.notes,
-      ("reference" in loan ? String(loan.reference) : ""),
+      loan.reference,
       ...loan.lines.map((line) => line.description),
     ].join(" "),
   )

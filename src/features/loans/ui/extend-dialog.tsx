@@ -1,9 +1,10 @@
 import { useState } from "react"
-import { Button } from "@/shared/ui/button"
-import { Dialog } from "@/shared/ui/dialog"
-import { Field } from "@/shared/ui/field"
-import { DatePicker } from "@/shared/ui/date-picker"
+import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Field, FieldError, FieldLabel } from "@/components/ui/field"
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { addDays, formatDate, todayIso } from "@/shared/lib/dates"
+import { DatePicker } from "@/shared/ui/date-picker"
 import type { Loan } from "../domain/loan"
 
 interface ExtendDialogProps {
@@ -22,24 +23,26 @@ const QUICK_PICKS = [
 /** Moves the expected return date. Quick picks count from today if the loan is already late. */
 export function ExtendDialog({ loan, onClose, onExtend }: ExtendDialogProps) {
   return (
-    <Dialog
-      open={loan !== null}
-      onOpenChange={(open) => !open && onClose()}
-      title="Extend loan"
-      description={loan ? `${loan.borrower.name} · due ${formatDate(loan.expectedReturnDate)}` : undefined}
-      size="sm"
-      footer={
-        <>
+    <Dialog open={loan !== null} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="rounded-2xl sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Extend loan</DialogTitle>
+          {loan && (
+            <DialogDescription>
+              {loan.reference} · {loan.borrower.name} · due {formatDate(loan.expectedReturnDate)}
+            </DialogDescription>
+          )}
+        </DialogHeader>
+        {loan && <ExtendForm key={loan.id} loan={loan} onExtend={(date) => onExtend(loan, date)} />}
+        <DialogFooter>
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button variant="primary" type="submit" form="extend-form">
+          <Button type="submit" form="extend-form">
             Save new date
           </Button>
-        </>
-      }
-    >
-      {loan && <ExtendForm key={loan.id} loan={loan} onExtend={(date) => onExtend(loan, date)} />}
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   )
 }
@@ -49,6 +52,7 @@ function ExtendForm({ loan, onExtend }: { loan: Loan; onExtend: (date: string) =
   const base = loan.expectedReturnDate > today ? loan.expectedReturnDate : today
   const [date, setDate] = useState(addDays(base, 7))
   const [error, setError] = useState<string>()
+  const pickValue = QUICK_PICKS.find((pick) => addDays(base, pick.days) === date)?.label
 
   return (
     <form
@@ -61,28 +65,26 @@ function ExtendForm({ loan, onExtend }: { loan: Loan; onExtend: (date: string) =
         onExtend(date)
       }}
     >
-      <div className="flex flex-wrap gap-1.5">
-        {QUICK_PICKS.map((pick) => {
-          const value = addDays(base, pick.days)
-          return (
-            <Button
-              key={pick.label}
-              type="button"
-              size="sm"
-              variant={date === value ? "primary" : "outline"}
-              aria-pressed={date === value}
-              onClick={() => {
-                setDate(value)
-                setError(undefined)
-              }}
-              className="rounded-full"
-            >
-              {pick.label}
-            </Button>
-          )
-        })}
-      </div>
-      <Field label="New return date" htmlFor="extend-date" error={error}>
+      <ToggleGroup
+        variant="outline"
+        size="sm"
+        value={pickValue ? [pickValue] : []}
+        onValueChange={(values: string[]) => {
+          const pick = QUICK_PICKS.find((item) => item.label === values[0])
+          if (!pick) return
+          setDate(addDays(base, pick.days))
+          setError(undefined)
+        }}
+        className="flex-wrap"
+      >
+        {QUICK_PICKS.map((pick) => (
+          <ToggleGroupItem key={pick.label} value={pick.label}>
+            {pick.label}
+          </ToggleGroupItem>
+        ))}
+      </ToggleGroup>
+      <Field data-invalid={Boolean(error) || undefined}>
+        <FieldLabel htmlFor="extend-date">New return date</FieldLabel>
         <DatePicker
           id="extend-date"
           min={loan.startDate}
@@ -92,6 +94,7 @@ function ExtendForm({ loan, onExtend }: { loan: Loan; onExtend: (date: string) =
             setError(undefined)
           }}
         />
+        {error && <FieldError>{error}</FieldError>}
       </Field>
     </form>
   )

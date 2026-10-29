@@ -2,7 +2,7 @@ import { NavLink } from "react-router-dom"
 import { Home, List, Menu, Plus, Settings } from "lucide-react"
 import { useSidebar } from "@/components/ui/sidebar"
 import { cn } from "@/shared/lib/cn"
-import { CountBadge } from "@/shared/ui/pill"
+import { Badge } from "@/components/ui/badge"
 
 const LINKS = [
   { to: "/", label: "Home", icon: Home },
@@ -31,7 +31,11 @@ export function MobileNav({ overdue, onNewLoan }: { overdue: number; onNewLoan: 
             <NavLink to={item.to} end={item.to === "/"} className={({ isActive }) => itemClass(isActive)}>
               <item.icon className="size-[22px]" />
               {item.label}
-              {item.to === "/loans" && overdue > 0 && <CountBadge count={overdue} className="absolute top-1.5 right-[calc(50%-22px)]" />}
+              {item.to === "/loans" && overdue > 0 && (
+                <Badge variant="destructive" className="absolute top-1 right-[calc(50%-24px)] h-[18px] min-w-[18px] px-1 tabular">
+                  {overdue}
+                </Badge>
+              )}
             </NavLink>
           </li>
         ))}

@@ -4,6 +4,7 @@ import type { Loan, LoanLine } from "./loan"
 export function makeLoan(overrides: Partial<Loan> = {}): Loan {
   return {
     id: "loan-1",
+    reference: "LN-2026-0001",
     borrower: { name: "Thandi Nkosi", cellphone: "082 123 4567", whatsapp: "", department: "Maintenance", employeeNumber: "E1042" },
     lines: [makeLine()],
     startDate: "2026-10-20",
@@ -11,6 +12,8 @@ export function makeLoan(overrides: Partial<Loan> = {}): Loan {
     issuedBy: "Liam",
     notes: "",
     createdAt: "2026-10-20T08:00:00.000Z",
+    issuedAt: "2026-10-20T08:00:00.000Z",
+    extendedAt: [],
     updatedAt: "2026-10-20T08:00:00.000Z",
     isDemo: false,
     ...overrides,
