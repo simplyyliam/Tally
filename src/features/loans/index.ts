@@ -32,6 +32,7 @@ export { LoanChangeError, createLoan, draftFromLoan, editLoan, extendLoan, retur
 export { LOAN_SORTS, LOAN_TABS, countByTab, matchesSearch, matchesTab, sortLoans, type LoanSort, type LoanTab } from "./domain/list-view"
 export { EXPORT_HEADERS, loansToCsvRows } from "./domain/export"
 export { validateDraft, type DraftErrors } from "./domain/validate-draft"
+export { loansToPurge, retentionCutoff } from "./domain/retention"
 export {
   ACTIVITY_KINDS,
   ACTIVITY_LABELS,

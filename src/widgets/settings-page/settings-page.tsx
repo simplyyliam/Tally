@@ -12,6 +12,7 @@ import { toCsv } from "@/shared/lib/csv"
 import { fileDateStamp, todayIso } from "@/shared/lib/dates"
 import { downloadTextFile } from "@/shared/lib/download"
 import { PageHeader } from "@/shared/ui/page-header"
+import { RetentionCard } from "./retention-card"
 
 /** Preferences and data tools, one shadcn Card per topic. */
 export function SettingsPage() {
@@ -71,6 +72,7 @@ export function SettingsPage() {
             </Button>
           </CardFooter>
         </Card>
+        <RetentionCard />
       </div>
     </>
   )
