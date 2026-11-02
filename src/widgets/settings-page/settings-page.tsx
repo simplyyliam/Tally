@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { loansToCsvRows, useLoans } from "@/features/loans"
+import { ReminderTemplateCard } from "@/features/reminders"
 import { useSettings, useSettingsRepository } from "@/features/settings"
 import { toCsv } from "@/shared/lib/csv"
 import { fileDateStamp, todayIso } from "@/shared/lib/dates"
@@ -51,6 +52,8 @@ export function SettingsPage() {
             </Button>
           </CardFooter>
         </Card>
+
+        <ReminderTemplateCard />
 
         <Card className="rounded-2xl shadow-none ring-border">
           <CardHeader>

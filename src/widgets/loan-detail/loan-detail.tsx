@@ -16,7 +16,7 @@ import {
   useLoans,
   type Loan,
 } from "@/features/loans"
-import { DEFAULT_REMINDER_TEMPLATE, WhatsAppButton, reminderPhoneForLoan, reminderTextForLoan } from "@/features/reminders"
+import { LoanWhatsAppButton } from "@/features/reminders"
 import { cn } from "@/shared/lib/cn"
 import { formatDate, formatDateTime, formatRelativeDay, todayIso } from "@/shared/lib/dates"
 import { formatPhone } from "@/shared/lib/phone"
@@ -111,11 +111,7 @@ function LoanDetailView({ loan }: { loan: Loan }) {
           {isOpen && (
             <div className="grid grid-cols-2 gap-2 sm:flex">
               <ReturnButton loan={loan} size="lg" />
-              <WhatsAppButton
-                size="lg"
-                phone={reminderPhoneForLoan(loan)}
-                text={reminderTextForLoan(loan, DEFAULT_REMINDER_TEMPLATE, today)}
-              />
+              <LoanWhatsAppButton size="lg" loan={loan} today={today} />
               <Button variant="outline" size="lg" onClick={() => requestExtend(loan)} className="max-sm:col-span-2">
                 <CalendarPlus data-icon="inline-start" />
                 Extend

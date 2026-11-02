@@ -11,4 +11,7 @@ export {
 export { reminderPhoneForLoan, reminderTextForLoan, reminderValuesForLoan } from "./domain/loan-reminder"
 export { WaMeChannel, waMeUrl } from "./data/wa-me-channel"
 export { ReminderChannelProvider, useReminderChannel } from "./data/reminder-channel-context"
+export { useReminderTemplate } from "./data/use-reminder-template"
 export { WhatsAppButton } from "./ui/whatsapp-button"
+export { LoanWhatsAppButton } from "./ui/loan-whatsapp-button"
+export { ReminderTemplateCard } from "./ui/reminder-template-card"
