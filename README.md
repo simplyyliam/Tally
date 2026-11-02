@@ -1,35 +1,47 @@
-# React + TypeScript + Vite
+# Tally ☕
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+A loan register that answers one question reliably: **who has it?**
 
-Currently, two official plugins are available:
+Local-first: everything is saved in this browser. No login, no server, no monthly cost.
+Version 1.0 "Trusted Register": multi-item loans with partial returns, borrower profiles,
+WhatsApp reminders with consent, backup and restore, Excel/CSV import, an activity log, data
+retention and demo data. See [CHANGELOG.md](CHANGELOG.md).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Run it
 
-## React Compiler
-
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
-
-Note: This will impact Vite dev & build performances.
-You can also try [the experimental native React Compiler support in plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md#rust-react-compiler) by using `compiler: true` in the plugin options instead of using the Babel plugin.
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+npm run dev            # http://localhost:5173
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## Check it
+
+```bash
+npm run lint           # oxlint, including the architecture boundary rules
+npm run typecheck      # TypeScript
+npm test               # unit tests (Vitest)
+npm run build          # production build in dist/
+npm run check          # all of the above
+```
+
+## Downloadable version
+
+```bash
+npm run build:offline  # dist-offline/index.html: one file, opens from disk, no internet needed
+```
+
+## Try it with sample data
+
+Settings → **Load demo data**. **Clear demo data** removes only the sample loans.
+
+## Structure
+
+`app → widgets → features → shared`. See [docs/architecture.md](docs/architecture.md)
+for the rules, [docs/adr/](docs/adr/) for why, [DECISIONS.md](DECISIONS.md) for calls made
+during v1.0, and [CLAUDE.md](CLAUDE.md) for working conventions.
+
+## Keyboard
+
+- **N**: new loan
+- **Ctrl/⌘ + K**: search loans
+- **Enter**: save the loan form

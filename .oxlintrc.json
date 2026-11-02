@@ -1,8 +1,229 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
+  "plugins": [
+    "react",
+    "typescript",
+    "oxc",
+    "import"
+  ],
+  "env": {
+    "browser": true,
+    "es2024": true
+  },
   "rules": {
     "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
+    "react/only-export-components": [
+      "warn",
+      {
+        "allowConstantExport": true
+      }
+    ],
+    "import/no-cycle": "error"
+  },
+  "overrides": [
+    {
+      "files": [
+        "src/**/*-context.tsx",
+        "src/shared/ui/**",
+        "src/components/ui/**"
+      ],
+      "rules": {
+        "react/only-export-components": "off"
+      }
+    },
+    {
+      "files": [
+        "src/components/ui/**",
+        "src/hooks/**"
+      ],
+      "rules": {
+        "react/set-state-in-effect": "off",
+        "react/only-export-components": "off"
+      }
+    },
+    {
+      "files": [
+        "src/shared/**"
+      ],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": [
+                  "@/features/*",
+                  "@/features/**"
+                ],
+                "message": "shared/ must not depend on features."
+              },
+              {
+                "group": [
+                  "@/widgets/*",
+                  "@/widgets/**"
+                ],
+                "message": "shared/ must not depend on widgets."
+              },
+              {
+                "group": [
+                  "@/app/*",
+                  "@/app/**"
+                ],
+                "message": "shared/ must not depend on app."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": [
+        "src/features/**"
+      ],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": [
+                  "@/features/*/*",
+                  "@/features/*/**"
+                ],
+                "message": "Import other features only through their index.ts (e.g. @/features/loans)."
+              },
+              {
+                "group": [
+                  "../../*",
+                  "../../**"
+                ],
+                "message": "Use @/features/<name> for another feature, never a relative path into it."
+              },
+              {
+                "group": [
+                  "@/widgets/*",
+                  "@/widgets/**"
+                ],
+                "message": "Features must not depend on widgets."
+              },
+              {
+                "group": [
+                  "@/app/*",
+                  "@/app/**"
+                ],
+                "message": "Features must not depend on app."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": [
+        "src/widgets/**"
+      ],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": [
+                  "@/features/*/*",
+                  "@/features/*/**"
+                ],
+                "message": "Widgets import features only through their index.ts."
+              },
+              {
+                "group": [
+                  "@/app/*",
+                  "@/app/**"
+                ],
+                "message": "Widgets must not depend on app."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": [
+        "src/features/*/domain/**"
+      ],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "react",
+                "message": "domain/ is pure TypeScript: no React."
+              },
+              {
+                "name": "react-dom",
+                "message": "domain/ is pure TypeScript: no React."
+              }
+            ],
+            "patterns": [
+              {
+                "group": [
+                  "../data",
+                  "../data/**",
+                  "../ui",
+                  "../ui/**"
+                ],
+                "message": "domain/ cannot import data/ or ui/."
+              },
+              {
+                "group": [
+                  "../../*",
+                  "../../**"
+                ],
+                "message": "Use @/features/<name> for another feature, never a relative path into it."
+              },
+              {
+                "group": [
+                  "@/features/*/*",
+                  "@/features/*/**"
+                ],
+                "message": "Import other features only through their index.ts."
+              },
+              {
+                "group": [
+                  "@/shared/ui",
+                  "@/shared/ui/**",
+                  "@/shared/schema",
+                  "@/shared/schema/**",
+                  "@/widgets/**",
+                  "@/app/**"
+                ],
+                "message": "domain/ is pure: no UI, storage, widgets or app."
+              }
+            ]
+          }
+        ],
+        "no-restricted-globals": [
+          "error",
+          "localStorage",
+          "sessionStorage",
+          "indexedDB",
+          "window",
+          "document"
+        ]
+      }
+    },
+    {
+      "files": [
+        "src/**/*.test.ts"
+      ],
+      "rules": {
+        "no-restricted-imports": "off"
+      }
+    }
+  ],
+  "ignorePatterns": [
+    "dist",
+    "dist-offline",
+    "node_modules"
+  ]
 }
