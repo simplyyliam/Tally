@@ -4,6 +4,13 @@ import { z } from "zod"
 export const settingsSchema = z.object({
   /** Pre-fills "Issued by" on new loans. */
   staffName: z.string().trim().default(""),
+  /**
+   * The WhatsApp reminder text with {placeholders}. Empty means "use the
+   * built-in text": the reminders feature owns that default, so settings
+   * never has to import it, and an improved default reaches everyone who
+   * never customised theirs.
+   */
+  reminderTemplate: z.string().default(""),
 })
 
 export type Settings = z.infer<typeof settingsSchema>

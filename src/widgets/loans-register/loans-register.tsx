@@ -16,7 +16,7 @@ import {
   type LoanSort,
   type LoanTab,
 } from "@/features/loans"
-import { DEFAULT_REMINDER_TEMPLATE, WhatsAppButton, reminderPhoneForLoan, reminderTextForLoan } from "@/features/reminders"
+import { LoanWhatsAppButton } from "@/features/reminders"
 import { toCsv } from "@/shared/lib/csv"
 import { fileDateStamp, todayIso } from "@/shared/lib/dates"
 import { downloadTextFile } from "@/shared/lib/download"
@@ -154,12 +154,7 @@ export function LoansRegister() {
             onOpen={(loan) => navigate(`/loans/${loan.id}`)}
             renderQuickActions={(loan, status) =>
               status === "returned" ? null : (
-                <WhatsAppButton
-                  size="icon-sm"
-                  phone={reminderPhoneForLoan(loan)}
-                  text={reminderTextForLoan(loan, DEFAULT_REMINDER_TEMPLATE, today)}
-                  className="max-lg:size-10"
-                />
+                <LoanWhatsAppButton size="icon-sm" loan={loan} today={today} className="max-lg:size-10" />
               )
             }
           />

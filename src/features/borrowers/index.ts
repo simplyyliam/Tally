@@ -11,4 +11,5 @@ export {
 } from "./domain/borrower"
 export type { BorrowerRepository } from "./data/borrower-repository"
 export { LocalBorrowerRepository } from "./data/local-borrower-repository"
+export { WhatsappConsentField } from "./ui/whatsapp-consent-field"
 export { BorrowerRepositoryProvider, useBorrowerRepository, useBorrowers, useWhatsappConsent } from "./data/borrower-context"

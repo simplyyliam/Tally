@@ -12,7 +12,7 @@ import {
   type Loan,
   type LoanDraft,
 } from "@/features/loans"
-import { suggestBorrowers, useBorrowers } from "@/features/borrowers"
+import { WhatsappConsentField, borrowerKey, suggestBorrowers, useBorrowerRepository, useBorrowers, useWhatsappConsent } from "@/features/borrowers"
 import { useSettings } from "@/features/settings"
 import { formatPhone } from "@/shared/lib/phone"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -37,6 +37,10 @@ export function LoanEditor() {
   // Bumping this remounts the form with fresh, empty fields.
   const [formKey, setFormKey] = useState(0)
   const [lastSaved, setLastSaved] = useState<Loan | null>(null)
+  // null = follow what's stored for whoever is typed in; a boolean = staff flipped the switch.
+  const [consentChoice, setConsentChoice] = useState<boolean | null>(null)
+  const borrowerRepository = useBorrowerRepository()
+  const hasConsent = useWhatsappConsent()
 
   const editing = state.mode === "edit" ? loans.find((loan) => loan.id === state.loanId) : undefined
   const open = state.mode === "new" || (state.mode === "edit" && editing !== undefined)
@@ -49,11 +53,13 @@ export function LoanEditor() {
     try {
       if (editing) {
         await repository.save(editLoan(editing, draft, { at: nowTimestamp(), createId }))
+        await saveConsent(draft.borrower)
         toast.success("Changes saved")
         close()
         return
       }
       const created = await repository.create(draft)
+      await saveConsent(created.borrower)
       setLastSaved(created)
       setFormKey((key) => key + 1)
     } catch (error) {
@@ -61,9 +67,15 @@ export function LoanEditor() {
     }
   }
 
+  const saveConsent = async (borrower: BorrowerDetails) => {
+    if (consentChoice !== null) await borrowerRepository.setWhatsappConsent(borrowerKey(borrower), consentChoice)
+    setConsentChoice(null)
+  }
+
   const handleClose = () => {
     close()
     setLastSaved(null)
+    setConsentChoice(null)
     setFormKey((key) => key + 1)
   }
 
@@ -103,6 +115,15 @@ export function LoanEditor() {
               formId={FORM_ID}
               initial={initial}
               onSubmit={handleSubmit}
+              onBorrowerPicked={() => setConsentChoice(null)}
+              borrowerExtra={(borrower) => (
+                <WhatsappConsentField
+                  id={`${FORM_ID}-whatsapp-consent`}
+                  checked={consentChoice ?? hasConsent(borrowerKey(borrower))}
+                  onCheckedChange={setConsentChoice}
+                  className="rounded-lg border px-3 py-2.5"
+                />
+              )}
               findBorrowers={(query) =>
                 suggestBorrowers(borrowers, query).map((borrower) => ({
                   key: borrower.key,

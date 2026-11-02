@@ -5,7 +5,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { cn } from "@/shared/lib/cn"
 import { useReminderChannel } from "../data/reminder-channel-context"
 
-interface WhatsAppButtonProps {
+export interface WhatsAppButtonProps {
   phone: string
   text: string
   /** Set when the borrower opted out, so the button explains itself instead of sending. */
@@ -16,7 +16,7 @@ interface WhatsAppButtonProps {
   onSent?: () => void
 }
 
-/** Opens WhatsApp with the reminder typed in. Icon-only versions explain themselves in a tooltip. */
+/** Opens WhatsApp with the reminder typed in. Icon-only and disabled versions explain themselves in a tooltip. */
 export function WhatsAppButton({ phone, text, blockedReason, size = "sm", label = "WhatsApp", className, onSent }: WhatsAppButtonProps) {
   const channel = useReminderChannel()
   const reason = blockedReason ?? channel.unavailableReason({ phone, text })
@@ -40,7 +40,7 @@ export function WhatsAppButton({ phone, text, blockedReason, size = "sm", label 
       {!iconOnly && label}
     </Button>
   )
-  if (!iconOnly) return button
+  if (!iconOnly && !reason) return button
   return (
     <Tooltip>
       <TooltipTrigger render={<span className="inline-flex" />}>{button}</TooltipTrigger>

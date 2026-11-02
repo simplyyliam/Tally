@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
+import { toast } from "sonner"
 import { History, PackageOpen, Plus, UserX } from "lucide-react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
@@ -7,8 +8,9 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Item, ItemActions, ItemContent, ItemDescription, ItemGroup, ItemTitle } from "@/components/ui/item"
-import { findBorrower, useBorrowers, type Borrower } from "@/features/borrowers"
+import { WhatsappConsentField, findBorrower, useBorrowerRepository, useBorrowers, useWhatsappConsent, type Borrower } from "@/features/borrowers"
 import { LoanList, useLoanEditor } from "@/features/loans"
+import { LoanWhatsAppButton } from "@/features/reminders"
 import { cn } from "@/shared/lib/cn"
 import { formatDate, todayIso } from "@/shared/lib/dates"
 import { formatPhone } from "@/shared/lib/phone"
@@ -48,6 +50,8 @@ export function BorrowerProfile() {
 function ProfileView({ borrower }: { borrower: Borrower }) {
   const navigate = useNavigate()
   const { openNew } = useLoanEditor()
+  const borrowerRepository = useBorrowerRepository()
+  const hasConsent = useWhatsappConsent()
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const today = todayIso()
   const { details } = borrower
@@ -88,6 +92,19 @@ function ProfileView({ borrower }: { borrower: Borrower }) {
             </Badge>
           </div>
         </section>
+
+        <Card className="rounded-2xl py-4 shadow-none ring-border">
+          <CardContent className="px-4">
+            <WhatsappConsentField
+              id="borrower-whatsapp-consent"
+              checked={hasConsent(borrower.key)}
+              onCheckedChange={async (consent) => {
+                await borrowerRepository.setWhatsappConsent(borrower.key, consent)
+                toast.success(consent ? "WhatsApp reminders on" : `${details.name.split(" ")[0]} won't get WhatsApp reminders`)
+              }}
+            />
+          </CardContent>
+        </Card>
 
         <Card className="gap-0 rounded-2xl py-0 shadow-none ring-border">
           <CardHeader className="border-b bg-muted/50 py-3 [.border-b]:pb-3">
@@ -140,6 +157,9 @@ function ProfileView({ borrower }: { borrower: Borrower }) {
               selectedIds={selectedIds}
               onSelectionChange={setSelectedIds}
               onOpen={(loan) => navigate(`/loans/${loan.id}`)}
+              renderQuickActions={(loan, status) =>
+                status === "returned" ? null : <LoanWhatsAppButton size="icon-sm" loan={loan} today={today} className="max-lg:size-10" />
+              }
             />
           </CardContent>
         </Card>

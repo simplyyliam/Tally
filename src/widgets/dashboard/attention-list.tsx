@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom"
 import { AnimatePresence, motion } from "motion/react"
 import { BorrowerName, ItemsSummary, LoanStatusPill, ReturnButton, loanStatus, overdueDays, type Loan } from "@/features/loans"
-import { DEFAULT_REMINDER_TEMPLATE, WhatsAppButton, reminderPhoneForLoan, reminderTextForLoan } from "@/features/reminders"
+import { LoanWhatsAppButton } from "@/features/reminders"
 import { formatDate, type IsoDate } from "@/shared/lib/dates"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { cn } from "@/shared/lib/cn"
@@ -54,9 +54,9 @@ export function AttentionList({ title, loans, today, emptyText, className }: Att
                     </div>
                   </button>
                   <div className="flex shrink-0 items-center gap-2">
-                    <WhatsAppButton
-                      phone={reminderPhoneForLoan(loan)}
-                      text={reminderTextForLoan(loan, DEFAULT_REMINDER_TEMPLATE, today)}
+                    <LoanWhatsAppButton
+                      loan={loan}
+                      today={today}
                       className="max-sm:h-10 max-sm:flex-1"
                     />
                     <ReturnButton loan={loan} className="max-sm:h-10 max-sm:flex-1" />
