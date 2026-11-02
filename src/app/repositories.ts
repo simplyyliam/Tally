@@ -1,4 +1,4 @@
-import { LocalLoanRepository, type LoanRepository } from "@/features/loans"
+import { LocalActivityRepository, LocalLoanRepository, type ActivityRepository, type LoanRepository } from "@/features/loans"
 import { LocalBackupRepository, type BackupRepository } from "@/features/backup"
 import { LocalBorrowerRepository, type BorrowerRepository } from "@/features/borrowers"
 import { LocalSettingsRepository, type SettingsRepository } from "@/features/settings"
@@ -12,6 +12,7 @@ import { LocalDocumentStore, STORAGE_KEY } from "@/shared/schema/local-document"
  */
 export interface Repositories {
   loans: LoanRepository
+  activity: ActivityRepository
   borrowers: BorrowerRepository
   backup: BackupRepository
   settings: SettingsRepository
@@ -30,6 +31,7 @@ export function createRepositories(): Repositories {
   return {
     store,
     loans: new LocalLoanRepository(store),
+    activity: new LocalActivityRepository(store),
     borrowers: new LocalBorrowerRepository(store),
     backup: new LocalBackupRepository(store, window.localStorage),
     settings: new LocalSettingsRepository(store),

@@ -1,5 +1,5 @@
 import type { ReactNode } from "react"
-import { LoanActionsProvider, LoanEditorStateProvider, LoanRepositoryProvider } from "@/features/loans"
+import { ActivityRepositoryProvider, LoanActionsProvider, LoanEditorStateProvider, LoanRepositoryProvider } from "@/features/loans"
 import { BackupRepositoryProvider } from "@/features/backup"
 import { BorrowerRepositoryProvider } from "@/features/borrowers"
 import { SettingsRepositoryProvider } from "@/features/settings"
@@ -14,6 +14,7 @@ export function Providers({ repositories, children }: { repositories: Repositori
       <BackupRepositoryProvider repository={repositories.backup}>
       <SettingsRepositoryProvider repository={repositories.settings}>
         <LoanRepositoryProvider repository={repositories.loans}>
+          <ActivityRepositoryProvider repository={repositories.activity}>
           <BorrowerRepositoryProvider repository={repositories.borrowers}>
             <ReminderChannelProvider channel={repositories.reminderChannel}>
               <LoanEditorStateProvider>
@@ -21,6 +22,7 @@ export function Providers({ repositories, children }: { repositories: Repositori
               </LoanEditorStateProvider>
             </ReminderChannelProvider>
           </BorrowerRepositoryProvider>
+          </ActivityRepositoryProvider>
         </LoanRepositoryProvider>
       </SettingsRepositoryProvider>
       </BackupRepositoryProvider>

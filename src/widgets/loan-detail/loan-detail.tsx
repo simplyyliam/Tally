@@ -11,6 +11,9 @@ import {
   loanStatus,
   overdueDays,
   remainingQuantity,
+  ActivityIcon,
+  sortActivity,
+  useActivity,
   useLoanActions,
   useLoanEditor,
   useLoans,
@@ -68,6 +71,8 @@ function LoanDetailView({ loan }: { loan: Loan }) {
   const navigate = useNavigate()
   const { requestExtend, requestDelete } = useLoanActions()
   const { openEdit } = useLoanEditor()
+  const { data: activity = [] } = useActivity()
+  const history = sortActivity(activity, loan.id)
   const today = todayIso()
   const status = loanStatus(loan, today)
   const isOpen = status !== "returned"
@@ -171,6 +176,23 @@ function LoanDetailView({ loan }: { loan: Loan }) {
         <InfoCard title="Timestamps" description="Every handover moment, in Johannesburg time">
           <div className="px-4 py-4">
             <Timeline entries={timestampEntries(loan)} />
+          </div>
+        </InfoCard>
+
+        <InfoCard title="Activity" description="Who changed what, newest first">
+          <div className="px-4 py-4">
+            {history.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No changes recorded yet.</p>
+            ) : (
+              <Timeline
+                entries={history.map((entry) => ({
+                  id: entry.id,
+                  icon: <ActivityIcon kind={entry.kind} />,
+                  title: entry.detail,
+                  meta: `${formatDateTime(entry.at)}${entry.staffName ? ` · ${entry.staffName}` : ""}`,
+                }))}
+              />
+            )}
           </div>
         </InfoCard>
 

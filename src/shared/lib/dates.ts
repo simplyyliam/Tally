@@ -98,6 +98,15 @@ export function formatDateTime(timestamp: string): string {
   return displayDateTime.format(parsed)
 }
 
+const displayTime = new Intl.DateTimeFormat("en-ZA", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: TIME_ZONE })
+
+/** "14:05" in Johannesburg time. */
+export function formatTime(timestamp: string): string {
+  const parsed = new Date(timestamp)
+  if (Number.isNaN(parsed.getTime())) return timestamp
+  return displayTime.format(parsed)
+}
+
 /** "today", "tomorrow", "in 3 days", "2 days ago" relative to `today`. */
 export function formatRelativeDay(date: IsoDate, today: IsoDate): string {
   const diff = daysBetween(today, date)

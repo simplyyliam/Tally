@@ -3,8 +3,12 @@ import { AnimatePresence, motion } from "motion/react"
 import { CircleCheck } from "lucide-react"
 import {
   LoanForm,
+  activityFor,
+  describeExtension,
+  describeIssue,
   draftFromLoan,
   editLoan,
+  useActivityRepository,
   useLoanEditor,
   useLoanRepository,
   useLoans,
@@ -32,6 +36,7 @@ export function LoanEditor() {
   const { state, close } = useLoanEditor()
   const { data: loans = [] } = useLoans()
   const repository = useLoanRepository()
+  const activity = useActivityRepository()
   const settings = useSettings()
   const { borrowers } = useBorrowers()
   // Bumping this remounts the form with fresh, empty fields.
@@ -52,13 +57,18 @@ export function LoanEditor() {
   const handleSubmit = async (draft: LoanDraft) => {
     try {
       if (editing) {
-        await repository.save(editLoan(editing, draft, { at: nowTimestamp(), createId }))
+        const edited = editLoan(editing, draft, { at: nowTimestamp(), createId })
+        await repository.save(edited)
+        const extended = edited.expectedReturnDate > editing.expectedReturnDate
+        const detail = extended ? `Details edited · ${describeExtension(edited)}` : "Details edited"
+        await activity.record([activityFor(edited, "edit", settings.staffName, detail)])
         await saveConsent(draft.borrower)
         toast.success("Changes saved")
         close()
         return
       }
       const created = await repository.create(draft)
+      await activity.record([activityFor(created, "create", settings.staffName, describeIssue(created))])
       await saveConsent(created.borrower)
       setLastSaved(created)
       setFormKey((key) => key + 1)

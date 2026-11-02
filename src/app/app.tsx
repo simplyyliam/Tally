@@ -3,6 +3,7 @@ import { ShieldAlert } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AppShell } from "@/widgets/app-shell/app-shell"
 import { BackupBanner } from "@/features/backup"
+import { ActivityPage } from "@/widgets/activity-page/activity-page"
 import { BackupPage } from "@/widgets/backup-page/backup-page"
 import { BorrowerProfile } from "@/widgets/borrower-profile/borrower-profile"
 import { BorrowersPage } from "@/widgets/borrowers-page/borrowers-page"
@@ -41,6 +42,7 @@ export function App({ repositories }: { repositories: Repositories }) {
             <Route path="/loans/:loanId" element={<LoanDetail />} />
             <Route path="/borrowers" element={<BorrowersPage />} />
             <Route path="/borrowers/:borrowerKey" element={<BorrowerProfile />} />
+            <Route path="/activity" element={<ActivityPage />} />
             <Route path="/import" element={<ImportPage />} />
             <Route path="/backup" element={<BackupPage />} />
             <Route path="/settings" element={<SettingsPage />} />
