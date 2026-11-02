@@ -10,10 +10,13 @@ src/
   app/          routes, providers, and repositories.ts (picks local vs online storage)
   widgets/      parent screens that compose features: widgets/<name>/<name>.tsx
   features/
-    loans/      domain/ data/ ui/ index.ts
-    borrowers/  …
-    reminders/  ReminderChannel + wa.me implementation
-    settings/   …
+    loans/      domain/ data/ ui/ index.ts (also the activity log and retention rules)
+    borrowers/  derived borrowers, WhatsApp consent
+    reminders/  ReminderChannel + wa.me implementation, message template
+    import/     Excel/CSV parsing, column mapping, validation
+    backup/     backup file, restore, 7-day reminder
+    demo/       sample loans (Settings)
+    settings/   staff name, reminder template
   shared/
     ui/         design-system components (from docs/design)
     lib/        dates (Africa/Johannesburg), ids, phone, csv, small helpers
@@ -48,6 +51,19 @@ Imports only point **down** this list: `app → widgets → features → shared`
 - Writes that the browser refuses (storage full) raise an error the UI shows.
 - Other tabs are kept in sync via the `storage` event, so a stale tab can't
   overwrite newer data.
+
+## Sections in the document
+
+| Section | Owner | Notes |
+| --- | --- | --- |
+| `loans`, `loanReferenceCounters`, `quarantine` | `features/loans` | Counters keep `LN-` numbers from ever being reused |
+| `activity` | `features/loans` (`ActivityRepository`) | Append-only; removed only with purged or demo loans |
+| `borrowerPreferences` | `features/borrowers` | WhatsApp consent; default is "yes" |
+| `settings` | `features/settings` | Staff name, reminder template (empty = built-in text) |
+| `meta` | `features/backup` | Last backup time |
+
+Why it's built this way: [ADR 0003](adr/0003-local-first-storage-and-migrations.md). UI rules:
+[ADR 0002](adr/0002-shadcn-only-ui.md).
 
 ## Dates
 
