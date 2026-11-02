@@ -38,7 +38,7 @@ export function ColumnMappingCard({ headers, mapping, onChange }: ColumnMappingC
       <CardContent className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
         {IMPORT_FIELDS.map((field) => (
           <Field key={field.id} orientation="horizontal" className="justify-between">
-            <FieldLabel htmlFor={`import-${field.id}`} className="shrink-0 font-normal">
+            <FieldLabel htmlFor={`import-${field.id}`} className="min-w-0 flex-1 font-normal">
               {field.label}
               {field.required && <span className="text-red-text">*</span>}
             </FieldLabel>
@@ -47,7 +47,7 @@ export function ColumnMappingCard({ headers, mapping, onChange }: ColumnMappingC
               value={mapping[field.id] === null ? NOT_IMPORTED : String(mapping[field.id])}
               onValueChange={(value) => setColumn(field.id, value)}
             >
-              <SelectTrigger id={`import-${field.id}`} size="sm" className="w-44 min-w-0" aria-invalid={(field.required && mapping[field.id] === null) || undefined}>
+              <SelectTrigger id={`import-${field.id}`} size="sm" className="w-40 shrink-0 sm:w-44" aria-invalid={(field.required && mapping[field.id] === null) || undefined}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
