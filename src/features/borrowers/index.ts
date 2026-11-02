@@ -4,6 +4,7 @@ export {
   borrowerPreferenceSchema,
   deriveBorrowers,
   findBorrower,
+  orphanedPreferenceKeys,
   suggestBorrowers,
   type Borrower,
   type BorrowerPreference,

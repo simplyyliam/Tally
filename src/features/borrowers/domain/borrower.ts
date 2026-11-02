@@ -105,3 +105,9 @@ export function suggestBorrowers(borrowers: ReadonlyArray<Borrower>, query: stri
 export function findBorrower(borrowers: ReadonlyArray<Borrower>, key: string): Borrower | undefined {
   return borrowers.find((borrower) => borrower.key === key)
 }
+
+/** Saved preferences whose borrower no longer has any loan, e.g. after old loans were purged. */
+export function orphanedPreferenceKeys(preferences: ReadonlyArray<BorrowerPreference>, remainingLoans: ReadonlyArray<Loan>): string[] {
+  const inUse = new Set(remainingLoans.map((loan) => borrowerKey(loan.borrower)))
+  return preferences.filter((preference) => !inUse.has(preference.key)).map((preference) => preference.key)
+}
