@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Spinner } from "@/components/ui/spinner"
-import { useLoanRepository } from "@/features/loans"
+import { activityFor, describeIssue, useActivityRepository, useLoanRepository } from "@/features/loans"
+import { useSettings } from "@/features/settings"
 import { nowTimestamp, todayIso } from "@/shared/lib/dates"
 import { plural } from "@/shared/lib/text"
 import { buildImport, type ImportPlan } from "../domain/build-import"
@@ -26,6 +27,8 @@ type Step =
 /** Choose a file → match columns with a preview → import → see what was skipped. */
 export function ImportPanel() {
   const repository = useLoanRepository()
+  const activity = useActivityRepository()
+  const { staffName } = useSettings()
   const navigate = useNavigate()
   const fileInput = useRef<HTMLInputElement>(null)
   const [step, setStep] = useState<Step>({ kind: "choose" })
@@ -111,6 +114,7 @@ export function ImportPanel() {
     setBusy(true)
     try {
       const saved = await saveImport(repository, plan.loans, nowTimestamp())
+      await activity.record(saved.map((loan) => activityFor(loan, "create", staffName, `Imported from ${step.fileName} · ${describeIssue(loan)}`)))
       setStep({ kind: "done", imported: saved.length, plan })
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Import failed")

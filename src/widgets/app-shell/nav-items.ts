@@ -1,4 +1,4 @@
-import { Database, FileSpreadsheet, Home, List, Settings, Users, type LucideIcon } from "lucide-react"
+import { Database, FileSpreadsheet, History, Home, List, Settings, Users, type LucideIcon } from "lucide-react"
 
 export interface NavItem {
   to: string
@@ -12,6 +12,7 @@ export const MAIN_NAV: ReadonlyArray<NavItem> = [
   { to: "/", label: "Dashboard", icon: Home },
   { to: "/loans", label: "Loans", icon: List, badge: "overdue" },
   { to: "/borrowers", label: "Borrowers", icon: Users },
+  { to: "/activity", label: "Activity", icon: History },
 ]
 
 export const DATA_NAV: ReadonlyArray<NavItem> = [
