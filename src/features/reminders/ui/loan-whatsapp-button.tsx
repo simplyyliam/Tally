@@ -18,12 +18,18 @@ export function LoanWhatsAppButton({ loan, today, ...props }: LoanWhatsAppButton
   const template = useReminderTemplate()
   const hasConsent = useWhatsappConsent()
   const firstName = loan.borrower.name.split(/\s+/)[0] || "This borrower"
+  // Demo numbers could belong to real people, so sample loans never open WhatsApp.
+  const blockedReason = loan.isDemo
+    ? "WhatsApp is turned off for demo loans"
+    : hasConsent(borrowerKey(loan.borrower))
+      ? undefined
+      : `${firstName} asked not to be contacted on WhatsApp`
   return (
     <WhatsAppButton
       {...props}
       phone={reminderPhoneForLoan(loan)}
       text={reminderTextForLoan(loan, template, today)}
-      blockedReason={hasConsent(borrowerKey(loan.borrower)) ? undefined : `${firstName} asked not to be contacted on WhatsApp`}
+      blockedReason={blockedReason}
     />
   )
 }

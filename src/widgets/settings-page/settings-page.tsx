@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { loansToCsvRows, useLoans } from "@/features/loans"
+import { DemoDataCard } from "@/features/demo"
 import { ReminderTemplateCard } from "@/features/reminders"
 import { useSettings, useSettingsRepository } from "@/features/settings"
 import { toCsv } from "@/shared/lib/csv"
@@ -73,6 +74,7 @@ export function SettingsPage() {
           </CardFooter>
         </Card>
         <RetentionCard />
+        <DemoDataCard />
       </div>
     </>
   )

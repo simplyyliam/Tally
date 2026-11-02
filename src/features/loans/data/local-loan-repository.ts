@@ -45,7 +45,8 @@ export class LocalLoanRepository implements LoanRepository {
     const { references, counters } = allocateReferences(
       yearOfTimestamp(at),
       drafts.length,
-      existing.map((loan) => loan.reference),
+      // Demo loans use their own 9001+ block, so they never push real numbers up.
+      existing.filter((loan) => !loan.isDemo).map((loan) => loan.reference),
       this.readCounters(),
     )
     const created = drafts.map((draft, index) =>
