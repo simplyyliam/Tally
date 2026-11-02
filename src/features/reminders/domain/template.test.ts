@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest"
+import { formatDate } from "@/shared/lib/dates"
 import { makeLine, makeLoan } from "@/features/loans/domain/test-loans"
 import { reminderTextForLoan } from "./loan-reminder"
 import { DEFAULT_REMINDER_TEMPLATE, renderTemplate, unknownPlaceholders } from "./template"
@@ -31,5 +32,18 @@ describe("reminder templates", () => {
     expect(reminderTextForLoan(loan, "{reference} for {name}, {daysOverdue} days late:\n{items}", "2026-10-29")).toBe(
       "LN-2026-0042 for Thandi, 2 days late:\n- 2 × Drill\n- 1 × Ladder",
     )
+  })
+
+  it("a due-tomorrow reminder holds the reference, every item with its quantity, and the return date", () => {
+    const loan = makeLoan({
+      reference: "LN-2026-0013",
+      expectedReturnDate: "2026-10-30",
+      lines: [makeLine({ id: "a", description: "PA speaker", quantity: 2 }), makeLine({ id: "b", description: "Mic stand", quantity: 3 })],
+    })
+    const text = reminderTextForLoan(loan, DEFAULT_REMINDER_TEMPLATE, "2026-10-29")
+    expect(text).toContain("LN-2026-0013")
+    expect(text).toContain("- 2 × PA speaker")
+    expect(text).toContain("- 3 × Mic stand")
+    expect(text).toContain(formatDate("2026-10-30"))
   })
 })
