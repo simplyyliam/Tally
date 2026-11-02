@@ -13,9 +13,23 @@ export async function readSpreadsheet(file: File): Promise<string[][]> {
   throw new SpreadsheetReadError("Choose a .csv or .xlsx file.")
 }
 
+/**
+ * The Excel reader is a separate download so the first page load stays light.
+ * It is fetched in the background once the app is idle, so importing still
+ * works if the internet drops while the page is open.
+ */
+function loadExcelReader() {
+  return import("read-excel-file/browser")
+}
+
+export function preloadExcelReader(): void {
+  loadExcelReader().catch(() => {
+    // Offline at start-up: the reader is tried again when someone imports.
+  })
+}
+
 async function readExcel(file: File): Promise<string[][]> {
-  // Loaded only when someone imports a spreadsheet, so everyday use stays light.
-  const { readSheet } = await import("read-excel-file/browser")
+  const { readSheet } = await loadExcelReader()
   try {
     const rows = await readSheet(file)
     return rows.map((row) => row.map(cellToText)).filter((row) => row.some((cell) => cell.trim() !== ""))
