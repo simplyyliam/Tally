@@ -3,6 +3,22 @@
 All notable changes to Tally. The format follows [Keep a Changelog](https://keepachangelog.com/),
 and versions follow [Semantic Versioning](https://semver.org/).
 
+## [1.0.1] - Installable on phones
+
+### Added
+
+- Tally can be installed on a phone's home screen ("Install app" in Chrome, "Add to Home Screen"
+  on iPhone) and opens full screen, without the browser bar.
+- App icons and favicon made from the Tally mark.
+- Tally asks the browser to keep its saved data, so it isn't cleared when space runs low.
+
+### Notes
+
+- Installing needs the site on an HTTPS address. The downloadable single file
+  (`build:offline`) leaves out the install tags because a file opened from disk can't be installed.
+- On iPhone, the home-screen app has its own storage, separate from Safari. Install it first, or
+  move loans across with Backup and Restore.
+
 ## [1.0.0] - Trusted Register
 
 The first launch: a loan register you can use every day instead of paper, without losing data.
