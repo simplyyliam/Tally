@@ -7,6 +7,7 @@ import { BackupPage } from "@/widgets/backup-page/backup-page"
 import { BorrowerProfile } from "@/widgets/borrower-profile/borrower-profile"
 import { BorrowersPage } from "@/widgets/borrowers-page/borrowers-page"
 import { Dashboard } from "@/widgets/dashboard/dashboard"
+import { ImportPage } from "@/widgets/import-page/import-page"
 import { LoanDetail } from "@/widgets/loan-detail/loan-detail"
 import { LoanEditor } from "@/widgets/loan-editor/loan-editor"
 import { LoansRegister } from "@/widgets/loans-register/loans-register"
@@ -40,6 +41,7 @@ export function App({ repositories }: { repositories: Repositories }) {
             <Route path="/loans/:loanId" element={<LoanDetail />} />
             <Route path="/borrowers" element={<BorrowersPage />} />
             <Route path="/borrowers/:borrowerKey" element={<BorrowerProfile />} />
+            <Route path="/import" element={<ImportPage />} />
             <Route path="/backup" element={<BackupPage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="*" element={<Dashboard />} />
